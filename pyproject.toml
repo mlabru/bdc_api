@@ -1,13 +1,15 @@
 [tool.poetry]
-name = "clsapi"
+name = "bdc_api"
 version = "0.1.0"
-description = "CLSim API"
+description = "BDC API"
 authors = ["Milton Abrunhosa <ml_byteman@yahoo.com.br>"]
 license = "CC0 1.0 Universal"
 
 [tool.poetry.dependencies]
 python = "^3.9"
 Flask = "^2.2.2"
+psycopg2 = "^2.9.3"
+python-dotenv = "^0.21.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"

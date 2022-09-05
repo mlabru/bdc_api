@@ -3,8 +3,8 @@
 # language
 # export LANGUAGE=pt_BR
 
-# CLSim directory
-CLSIM=~/clsapi
+# BDC API directory
+BDC_API=~/bdc_api
 
 # nome do computador
 HOST=`hostname`
@@ -13,46 +13,29 @@ HOST=`hostname`
 TDATE=`date '+%Y-%m-%d_%H-%M'`
 
 # home directory exists ?
-if [ -d ${CLSIM} ]; then
+if [ -d ${BDC_API} ]; then
     # set home dir
-    cd ${CLSIM}
-fi
-
-# ckeck if another instance of worker is running
-DI_PID_WRK=`ps ax | grep -w python3 | grep -w worker.py | awk '{ print $1 }'`
-
-if [ ! -z "$DI_PID_WRK" ]; then
-    # log warning
-    echo "[`date`]: process worker is already running. Restarting..."
-    # kill process
-    kill -9 $DI_PID_WRK
-    # wait 3s
-    sleep 3
+    cd ${BDC_API}
 fi
 
 # set PYTHONPATH
 export PYTHONPATH="$PWD/."
 
-# log warning
-echo "[`date`]: starting process worker..."
-# executa o worker (message queue consumer)
-python3 clsapi/worker.py > logs/worker.$HOST.$TDATE.log 2>&1 &
+# ckeck if another instance os bdc_api is running
+DI_PID_API=`ps ax | grep -w python3 | grep -w api_run.py | awk '{ print $1 }'`
 
-# ckeck if another instance os clsapi is running
-DI_PID_CLS=`ps ax | grep -w streamlit | grep -w clsapi_gui.py | awk '{ print $1 }'`
-
-if [ ! -z "$DI_PID_CLS" ]; then
+if [ ! -z "$DI_PID_API" ]; then
     # log warning
-    echo "[`date`]: process clsapi is already running. Restarting..."
+    echo "[`date`]: process bdc_api is already running. Restarting..."
     # kill process
-    kill -9 $DI_PID_CLS
+    kill -9 $DI_PID_API
     # wait 3s
     sleep 3
 fi
 
 # log warning
-echo "[`date`]: starting process clsapi..."
+echo "[`date`]: starting process bdc_api..."
 # executa a aplicação (-OO)
-streamlit run clsapi/clsapi_gui.py > logs/clsapi_gui.$HOST.$TDATE.log 2>&1 &
+python3 bdc_api/api_run.py > logs/api_run.$HOST.$TDATE.log 2>&1 &
 
 # < the end >----------------------------------------------------------------------------------
