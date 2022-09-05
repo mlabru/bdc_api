@@ -1,6 +1,3 @@
-import flask
-from flask import request, jsonify
-import sqlite3
 
 app = flask.Flask(__name__)
 app.config["DEBUG"] = True
@@ -12,12 +9,6 @@ def dict_factory(cursor, row):
     return d
 
 
-@app.route('/', methods=['GET'])
-def home():
-    return '''<h1>CLSim API</h1>
-<p>A prototype API for CLSim data.</p>'''
-
-
 @app.route('/api/v1/resources/data/all', methods=['GET'])
 def api_all():
     conn = sqlite3.connect('data.db')
@@ -26,13 +17,6 @@ def api_all():
     all_data = cur.execute('SELECT * FROM data;').fetchall()
 
     return jsonify(all_data)
-
-
-
-@app.errorhandler(404)
-def page_not_found(e):
-    return "<h1>404</h1><p>The resource could not be found.</p>", 404
-
 
 @app.route('/api/v1/resources/data', methods=['GET'])
 def api_filter():
@@ -66,5 +50,3 @@ def api_filter():
     results = cur.execute(query, to_filter).fetchall()
 
     return jsonify(results)
-
-app.run()

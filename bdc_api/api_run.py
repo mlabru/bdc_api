@@ -13,7 +13,6 @@ import sys
 
 # flask
 import flask
-from flask import request, jsonify
 
 # local
 import bdc_api.api_bdc as db
@@ -63,7 +62,7 @@ def api_all():
     api_all
     """
     # return data
-    return jsonify(DLST_DATA)
+    return flask.jsonify(DLST_DATA)
 
 # ---------------------------------------------------------------------------------------------
 @lapp.route("/api/v1/data", methods=["GET"])
@@ -72,9 +71,9 @@ def api_id():
     api_id
     """
     # an ID was provided as part of the URL ?
-    if "id" in request.args:
+    if "id" in flask.request.args:
         # assign it to a variable
-        li_id = int(request.args["id"])
+        li_id = int(flask.request.args["id"])
 
     # senão,...
     else:
@@ -93,13 +92,41 @@ def api_id():
             llst_results.append(book)
 
     # return a converted list of dictionaries
-    return jsonify(llst_results)
+    return flask.jsonify(llst_results)
+
+# ---------------------------------------------------------------------------------------------
+def dict_factory(cursor, row):
+    """
+    dict_factory
+    """
+    # init temp dict
+    ldct_tmp = {}
+
+    # for all columns...
+    for idx, col in enumerate(cursor.description):
+        ldct_tmp[col[0]] = row[idx]
+
+    # return dictionary
+    return ldct_tmp
 
 # ---------------------------------------------------------------------------------------------
 @lapp.route("/", methods=["GET"])
 def home():
+    """
+    home
+    """
+    # return data
     return """<h1>BDC API</h1>
 <p>A prototype API for BDC meteorological data.</p>"""
+
+# ---------------------------------------------------------------------------------------------
+@lapp.errorhandler(404)
+def page_not_found(e):
+    """
+    page not found
+    """
+    # return data
+    return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 # ---------------------------------------------------------------------------------------------
 def main():
