@@ -44,6 +44,9 @@ def connect_bdc(fs_user: typing.Optional[str] = df.DS_USER,
 
     :returns: BDC connections
     """
+    # logger
+    M_LOG.info(">> connect_bdc")
+
     # create connection
     l_bdc = psycopg2.connect(host=fs_host, database=fs_db, user=fs_user, password=fs_pass)
     assert l_bdc
@@ -60,6 +63,9 @@ def get_from_bdc(f_bdc, fdct_dado: dict, fdct_alt: dict):
     :param fdct_dado (dict): dicionário de dados
     :param fdct_alt (dict): dicionário de altitudes das estações
     """
+    # logger
+    M_LOG.info(">> get_from_bdc")
+
     # código da estação
     ls_station = str(fdct_dado["CD_ESTACAO"])
 

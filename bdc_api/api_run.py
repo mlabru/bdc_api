@@ -47,7 +47,7 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-# Flask init
+# flask initialize
 #
 lapp = flask.Flask(__name__)
 assert lapp
@@ -61,6 +61,12 @@ def api_all():
     """
     api_all
     """
+    # logger
+    M_LOG.info(">> api_all")
+
+    # logger
+    M_LOG.debug("request: all")
+
     # return data
     return flask.jsonify(DLST_DATA)
 
@@ -70,6 +76,12 @@ def api_id():
     """
     api_id
     """
+    # logger
+    M_LOG.info(">> api_id")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args))
+
     # an ID was provided as part of the URL ?
     if "id" in flask.request.args:
         # assign it to a variable
@@ -99,6 +111,9 @@ def dict_factory(cursor, row):
     """
     dict_factory
     """
+    # logger
+    M_LOG.info(">> dict_factory")
+
     # init temp dict
     ldct_tmp = {}
 
@@ -115,6 +130,9 @@ def home():
     """
     home
     """
+    # logger
+    M_LOG.info(">> home")
+
     # return data
     return """<h1>BDC API</h1>
 <p>A prototype API for BDC meteorological data.</p>"""
@@ -125,6 +143,9 @@ def page_not_found(e):
     """
     page not found
     """
+    # logger
+    M_LOG.info(">> page_not_found")
+
     # return data
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
@@ -133,6 +154,9 @@ def main():
     """
     main
     """
+    # logger
+    M_LOG.info(">> main")
+
     # connect BDC
     # l_bdc = db.connect_bdc()
     # assert l_bdc
