@@ -1,3 +1,20 @@
+# backup files
+*~
+*.bak
+.bkp/
+
+# logs
+logs/
+.log
+
+# aux files
+.o
+.err
+.out
+.data/
+.hidden/
+.tests/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
