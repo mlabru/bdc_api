@@ -7,6 +7,7 @@ api_run
 # < imports >----------------------------------------------------------------------------------
 
 # python library
+import datetime
 import json
 import logging
 import sys
@@ -17,29 +18,6 @@ import flask
 # local
 import bdc_api.api_bdc as db
 import bdc_api.api_defs as df
-
-# < defines >----------------------------------------------------------------------------------
-
-# create some test data for our catalog in the form of a list of dictionaries.
-DLST_DATA = [
-    {"id": 0,
-     "title": "A Fire Upon the Deep",
-     "author": "Vernor Vinge",
-     "first_sentence": "The coldsleep itself was dreamless.",
-     "year_published": "1992"},
-
-    {"id": 1,
-     "title": "The Ones Who Walk Away From Omelas",
-     "author": "Ursula K. Le Guin",
-     "first_sentence": "With a clamor of bells that set the swallows soaring, the Festival of Summer came to the city Omelas, bright-towered by the sea.",
-     "published": "1973"},
-
-    {"id": 2,
-     "title": "Dhalgren",
-     "author": "Samuel R. Delany",
-     "first_sentence": "to wound the autumnal city.",
-     "published": "1975"}
-]
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -56,58 +34,66 @@ assert lapp
 lapp.config["DEBUG"] = True
 
 # ---------------------------------------------------------------------------------------------
-@lapp.route("/api/v1/data/all", methods=["GET"])
-def api_all():
-    """
-    api_all
-    """
-    # logger
-    M_LOG.info(">> api_all")
-
-    # logger
-    M_LOG.debug("request: all")
-
-    # return data
-    return flask.jsonify(DLST_DATA)
-
-# ---------------------------------------------------------------------------------------------
 @lapp.route("/api/v1/data", methods=["GET"])
-def api_id():
+def api_filter():
     """
-    api_id
+    api filter
     """
     # logger
-    M_LOG.info(">> api_id")
+    M_LOG.info(">> api_filter")
 
     # logger
     M_LOG.debug("request: %s", str(flask.request.args))
 
-    # an ID was provided as part of the URL ?
-    if "id" in flask.request.args:
-        # assign it to a variable
-        li_id = int(flask.request.args["id"])
+    # request parameters    
+    ldct_params = flask.request.args
 
-    # senão,...
-    else:
+    # estação
+    ls_estacao = ldct_params.get("estacao", None)
+
+    if not valida_estacao(ls_estacao):
         # display an error in the browser
-        M_LOG.error("no id field provided. Please specify an id.")
+        M_LOG.error("'estacao' não fornecida ou inválida. Especifique uma estação.")
         # return
-        return None
-        
-    # create an empty list for results
-    llst_results = []
+        return "'estacao' não fornecida ou inválida. Especifique uma estação."
 
-    # loop through the data and match results that fit the requested ID
-    for book in DLST_DATA:
-        # IDs are unique, but other fields might return many results
-        if book["id"] == li_id:
-            llst_results.append(book)
+    # data atual
+    ldt_now = datetime.datetime.now()
+
+    # data inicial
+    ls_data_ini = ldct_params.get("data_ini", None)
+
+    if not valida_data(ls_data_ini):
+        # display an error in the browser
+        M_LOG.error("'data_ini' não fornecida ou inválida. Assumindo data atual.")
+        # assumindo data atual
+        ls_data_ini = ldt_now.strftime("%Y%m%d") + "00"
+
+    # data final
+    ls_data_fim = ldct_params.get("data_fim", None)
+
+    if not valida_data(ls_data_fim):
+        # display an error in the browser
+        M_LOG.error("'data_fim' não fornecida ou inválida. Assumindo data atual.")
+        # assumindo data atual
+        ls_data_fim = ldt_now.strftime("%Y%m%d") + "23"
+
+    # connect BDC
+    l_bdc = db.connect_bdc()
+    assert l_bdc
+
+    # query BDC
+    llst_results = db.get_from_bdc(l_bdc, ls_estacao, ls_data_ini, ls_data_fim)
+    M_LOG.debug("llst_results: %s", str(llst_results))
+
+    # close connection
+    l_bdc.close()
 
     # return a converted list of dictionaries
-    return flask.jsonify(llst_results)
+    return llst_results
 
 # ---------------------------------------------------------------------------------------------
-def dict_factory(cursor, row):
+def dict_factory(f_cursor, f_row):
     """
     dict_factory
     """
@@ -118,8 +104,16 @@ def dict_factory(cursor, row):
     ldct_tmp = {}
 
     # for all columns...
-    for idx, col in enumerate(cursor.description):
-        ldct_tmp[col[0]] = row[idx]
+    for lidx, lcol in enumerate(f_cursor.description):
+        # datetime ? 
+        if isinstance(f_row[lidx], datetime.datetime):
+            # format date
+            ldct_tmp[lcol[0]] = f_row[lidx].strftime("%Y/%m/%d, %H:%M")
+
+        # senão,...
+        else:
+            # keep format
+            ldct_tmp[lcol[0]] = f_row[lidx]
 
     # return dictionary
     return ldct_tmp
@@ -139,7 +133,7 @@ def home():
 
 # ---------------------------------------------------------------------------------------------
 @lapp.errorhandler(404)
-def page_not_found(e):
+def page_not_found(err):
     """
     page not found
     """
@@ -150,6 +144,57 @@ def page_not_found(e):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 # ---------------------------------------------------------------------------------------------
+def valida_data(fs_data: str):
+    """
+    valida data final
+    """
+    # logger
+    M_LOG.info(">> valida_data")
+
+    # não tem conteúdo ?
+    if not fs_data:
+        # return error
+        return False
+
+    try:
+        # convert date
+        # ldt_date = datetime.datetime.strptime(fs_data, '%Y%m%d%H')
+
+        # split da data
+        li_ano = int(fs_data[:4])
+        li_mes = int(fs_data[4:6])
+        li_dia = int(fs_data[6:8])
+        li_hor = int(fs_data[8:10])
+
+    # em caso de erro...
+    except ValueError as lerr:
+        # return error
+        return False
+        
+    # ok
+    lv_ok = True
+
+    # valida os campos da data
+    lv_ok &= 2000 <= li_ano <= datetime.date.today().year
+    lv_ok &= 1 <= li_mes <= 12
+    lv_ok &= 1 <= li_dia <= 31
+    lv_ok &= 0 <= li_hor <= 23
+
+    # return
+    return lv_ok
+
+# ---------------------------------------------------------------------------------------------
+def valida_estacao(fs_estacao: str):
+    """
+    valida estação
+    """
+    # logger
+    M_LOG.info(">> valida_estacao")
+
+    # return
+    return True if fs_estacao else False
+
+# ---------------------------------------------------------------------------------------------
 def main():
     """
     main
@@ -157,12 +202,8 @@ def main():
     # logger
     M_LOG.info(">> main")
 
-    # connect BDC
-    # l_bdc = db.connect_bdc()
-    # assert l_bdc
-
     # flask run
-    lapp.run()
+    lapp.run(host="172.18.30.30", port=7000)
 
 # ---------------------------------------------------------------------------------------------
 # this is the bootstrap process

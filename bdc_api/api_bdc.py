@@ -8,8 +8,10 @@ api_bdc
 
 # python library
 import logging
-import math
 import typing
+
+# pandas
+import pandas as pd
 
 # postgres
 import psycopg2
@@ -17,23 +19,16 @@ import psycopg2
 # local
 import bdc_api.api_defs as df
 
-# < defines >----------------------------------------------------------------------------------
-
-# ft -> m
-DF_FT2M = 0.3048
-# m/s -> kt
-DF_MS2KT = 1.943844492
-
 # < logging >----------------------------------------------------------------------------------
 
 M_LOG = logging.getLogger(__name__)
-M_LOG.setLevel(df.DI_LOG_LEVEL)
+M_LOG.setLevel(logging.ERROR)
 
 # ---------------------------------------------------------------------------------------------
-def connect_bdc(fs_user: typing.Optional[str] = df.DS_USER,
-                fs_pass: typing.Optional[str] = df.DS_PASS,
-                fs_host: typing.Optional[str] = df.DS_HOST,
-                fs_db: typing.Optional[str] = df.DS_DB):
+def connect_bdc(fs_user: typing.Optional[str] = df.DS_BDC_USER,
+                fs_pass: typing.Optional[str] = df.DS_BDC_PASS,
+                fs_host: typing.Optional[str] = df.DS_BDC_HOST,
+                fs_db: typing.Optional[str] = df.DS_BDC_DB):
     """
     connect to BDC
 
@@ -55,67 +50,126 @@ def connect_bdc(fs_user: typing.Optional[str] = df.DS_USER,
     return l_bdc
 
 # ---------------------------------------------------------------------------------------------
-def get_from_bdc(f_bdc, fdct_dado: dict, fdct_alt: dict):
+def get_as_df(f_bdc, fs_query: str, flst_columns: list) -> pd.DataFrame:
     """
-    get data from BDC
+    get dataframe from BDC
 
     :param f_bdc: conexão com o BDC
-    :param fdct_dado (dict): dicionário de dados
-    :param fdct_alt (dict): dicionário de altitudes das estações
+    :param fs_query: query
+    :param flst_columns: lista de títulos das colunas
     """
     # logger
-    M_LOG.info(">> get_from_bdc")
-
-    # código da estação
-    ls_station = str(fdct_dado["CD_ESTACAO"])
+    M_LOG.info(">> get_as_df")
 
     # create cursor
     l_cursor = f_bdc.cursor()
     assert l_cursor
 
+    # execute query
+    l_cursor.execute(fs_query)
+
+    # convert to dataframe
+    ldf_data = pd.DataFrame(l_cursor.fetchall(), columns=flst_columns)
+
+    # set index
+    ldf_data.set_index(flst_columns[0], drop=False)
+
+    # return dataframe
+    return ldf_data
+
+# ---------------------------------------------------------------------------------------------
+def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
+    """
+    get dataframe from BDC
+
+    :param f_bdc: conexão com o BDC
+    :param fdct_parm (str): query parameters
+    """
+    # logger
+    M_LOG.info(">> get_from_bdc")
+
+    # check input
+    assert fdct_parm["view"] in list(df.DDCT_VIEWS.values())
+
+    # data inicial
+    ls_data_ini = fdct_parm["ini"]
+    ls_data_ini = "{}-{}-{} {}:00".format(ls_data_ini[:4], 
+                                          ls_data_ini[4:6],
+                                          ls_data_ini[6:8],
+                                          ls_data_ini[8:10])
+
+    # data final
+    ls_data_fim = fdct_parm["fim"]
+    ls_data_fim = "{}-{}-{} {}:59".format(ls_data_fim[:4], 
+                                          ls_data_fim[4:6],
+                                          ls_data_fim[6:8],
+                                          ls_data_fim[8:10])
+
+    # precipitação ?
+    if "vwm_unificado_precipitacao" == fdct_parm["view"]:
+        # colunas
+        ls_columns = "hora_observacao, sigla, durpreci, precip"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "Duração", "Precipitação"]
+
+    # pressão ?
+    elif "vwm_unificado_pressao" == fdct_parm["view"]:
+        # colunas
+        ls_columns = "hora_observacao, sigla, qnh, qfe, qff, tendpressao, alt850hpa"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "QNH", "QFE", "QFF",
+                        "Tendência da pressão", "Altitude 850hpa"]
+
+    # RVR ?
+    elif "vwm_unificado_rvr" == fdct_parm["view"]:
+        # colunas
+        ls_columns = "hora_observacao, cabeceira, rvr"
+        # headers
+        llst_headers = ["Horário", "Cabeceira", "RVR"]
+
+    # temperatura ?
+    elif "vwm_unificado_temperatura" == fdct_parm["view"]:
+        # colunas
+        ls_columns = "hora_observacao, sigla, pista, bseco, bumido, ur, temppista, temppo"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "Pista", "Bulbo seco", "Bulbo úmido",
+                        "Umidade relativa", "Temperatura da pista",
+                        "Temperatura do ponto de orvalho"]
+
+    # teto ?
+    elif "vwm_unificado_teto" == fdct_parm["view"]:
+        # colunas
+        ls_columns = "hora_observacao, sigla, pista, teto"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "Pista", "Teto"]
+
+    # vento ?
+    elif "vwm_unificado_vento" == fdct_parm["view"]:
+        # colunas
+        ls_columns = "hora_observacao, sigla, cabeceira, velvento, dirvento, rajada"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "Cabeceira", "Velocidade do vento",
+                        "Direção do vento", "Rajada"]
+
+    # visibilidade ?
+    elif "vwm_unificado_visibilidade" == fdct_parm["view"]:
+        # colunas
+        ls_columns = "hora_observacao, sigla, dirvisibmin, visibmin, visibpre"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "Direção visibilidade mínima",
+                        "Visibilidade mínima", "Visibilidade predominante"]
+
     # make query
     # pylint: disable=duplicate-string-formatting-argument, consider-using-f-string
-    ls_query = "insert into dado_meteorologico_inmet(ven_dir, dt_medicao,"\
-               "dc_nome, chuva, pre_ins, vl_latitude, pre_min, umd_max,"\
-               "pre_max, ven_vel, uf, pto_min, tem_max, rad_glo, pto_ins,"\
-               "ven_raj, tem_ins, umd_ins, cd_estacao, tem_min, vl_longitude,"\
-               "hr_medicao, umd_min, pto_max, ven_vel_kt, ven_raj_kt, qfe_hpa,"\
-               "qnh_hpa) values ({}, '{}', '{}', {}, {}, {}, {}, {}, {}, {},"\
-               "'{}', {}, {}, {}, {}, {}, {}, {}, '{}', {}, {}, '{}', {},"\
-               "{}, {}, {}, {}, {})".format(
-                   int(fdct_dado.get("VEN_DIR", 0)),
-                   str(fdct_dado["DT_MEDICAO"]),
-                   str(fdct_dado["DC_NOME"]),
-                   float(fdct_dado.get("CHUVA", 0)),
-                   lf_qfe,
-                   float(fdct_dado.get("VL_LATITUDE", 0)),
-                   float(fdct_dado.get("PRE_MIN", 0)),
-                   int(fdct_dado.get("UMD_MAX", 0)),
-                   float(fdct_dado.get("PRE_MAX", 0)),
-                   float(fdct_dado.get("VEN_VEL", 0)),
-                   str(fdct_dado["UF"]),
-                   float(fdct_dado.get("PTO_MIN", 0)),
-                   float(fdct_dado.get("TEM_MAX", 0)),
-                   float(fdct_dado.get("RAD_GLO", 0)),
-                   float(fdct_dado.get("PTO_INS", 0)),
-                   float(fdct_dado.get("VEN_RAJ", 0)),
-                   float(fdct_dado.get("TEM_INS", 0)),
-                   int(fdct_dado.get("UMD_INS", 0)),
-                   ls_station,
-                   float(fdct_dado.get("TEM_MIN", 0)),
-                   float(fdct_dado.get("VL_LONGITUDE", 0)),
-                   str(fdct_dado["HR_MEDICAO"]),
-                   int(fdct_dado.get("UMD_MIN", 0)),
-                   float(fdct_dado.get("PTO_MAX", 0)),
-                   float(fdct_dado.get("VEN_VEL", 0)) * DF_MS2KT,
-                   float(fdct_dado.get("VEN_RAJ", 0)) * DF_MS2KT,
-                   lf_qfe,
-                   lf_qnh)
+    ls_query = "SELECT {} "\
+               "FROM {} "\
+               "WHERE sigla = '{}' "\
+               "AND hora_observacao BETWEEN '{}' AND '{}'".format(
+               ls_columns, fdct_parm["view"], fdct_parm["local"],
+               ls_data_ini, ls_data_fim)               
+    M_LOG.debug("ls_query: %s", str(ls_query))
 
-    # execute query
-    l_cursor.execute(ls_query)
-
-    # commit
-    f_bdc.commit()
-
+    # return data as dataframe        
+    return get_as_df(f_bdc, ls_query, llst_headers)
+    
 # < the end >----------------------------------------------------------------------------------
