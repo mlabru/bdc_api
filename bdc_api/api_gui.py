@@ -94,8 +94,10 @@ def pag_superficie():
     ls_data_fim = ldt_fim.strftime("%Y%m%d") + "{:02d}".format(li_hora_fim)
 
     # gera parâmetros
-    ldct_parm = {"view": df.DDCT_VIEWS[ls_view], "local": df.DDCT_LOCAL[ls_loc],
-                 "ini": ls_data_ini, "fim": ls_data_fim}
+    ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS[ls_view],
+                 df.DS_KEY_LOCAL: df.DDCT_LOCAL[ls_loc],
+                 df.DS_KEY_DTINI: ls_data_ini, 
+                 df.DS_KEY_DTFIM: ls_data_fim}
 
     # submit button
     lv_submit = st.button("Pesquisar")
@@ -104,7 +106,7 @@ def pag_superficie():
         # show message
         with st.spinner("Aguarde..."):
             # submit query
-            l_data = submit_query(ldct_parm)
+            l_data = db.submit_query(ldct_parm)
 
         # saída em arquivo ?
         if df.DS_MID_ARQ == ls_midia:
@@ -119,7 +121,7 @@ def pag_superficie():
         # senão,...
         else:
             # precipitação ?                                                                            
-            if "vwm_unificado_precipitacao" == ldct_parm["view"]:                                       
+            if "vwm_unificado_precipitacao" == ldct_parm[df.DS_KEY_VIEW]:                                       
                 # convert "Precipitação" from string to float
                 l_data["Precipitação"] = l_data["Precipitação"].astype(float)
                 # style format
@@ -127,7 +129,7 @@ def pag_superficie():
                 l_data.style.format({"Precipitação": "{:.2f}"})
                                                                                                         
             # pressão ?                                                                                 
-            elif "vwm_unificado_pressao" == ldct_parm["view"]:                                          
+            elif "vwm_unificado_pressao" == ldct_parm[df.DS_KEY_VIEW]:                                          
                 # convert multiple columns to float
                 l_data = l_data.astype({"QNH": "float", "QFE": "float", "QFF": "float"})
                 # style format
@@ -135,34 +137,34 @@ def pag_superficie():
                 l_data.style.format(subset=["QNH"], formatter="{:.2f}")
                                                                                                         
             # RVR ?                                                                                     
-            elif "vwm_unificado_rvr" == ldct_parm["view"]:                                              
+            elif "vwm_unificado_rvr" == ldct_parm[df.DS_KEY_VIEW]:                                              
                 # colunas                                                                               
                 ls_columns = "hora_observacao, cabeceira, rvr"                                          
                                                                                                         
             # temperatura ?                                                                             
-            elif "vwm_unificado_temperatura" == ldct_parm["view"]:                                      
+            elif "vwm_unificado_temperatura" == ldct_parm[df.DS_KEY_VIEW]:                                      
                 # convert multiple columns to float
                 l_data = l_data.astype({"Bulbo seco": "float", "Bulbo úmido": "float",
                                         "Temperatura da pista": "float",
                                         "Temperatura do ponto de orvalho": "float"})
 
             # teto ?                                                                                    
-            elif "vwm_unificado_teto" == ldct_parm["view"]:                                             
+            elif "vwm_unificado_teto" == ldct_parm[df.DS_KEY_VIEW]:                                             
                 # ["Horário", "Aeródromo", "Pista", "Teto"]
                 M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
 
             # vento ?                                                                                   
-            elif "vwm_unificado_vento" == ldct_parm["view"]:                                            
+            elif "vwm_unificado_vento" == ldct_parm[df.DS_KEY_VIEW]:                                            
                 # ["Horário", "Aeródromo", "Cabeceira", "Velocidade do vento", "Direção do vento", "Rajada"]
                 M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
                                                                                                         
             # visibilidade ?                                                                            
-            elif "vwm_unificado_visibilidade" == ldct_parm["view"]:                                     
+            elif "vwm_unificado_visibilidade" == ldct_parm[df.DS_KEY_VIEW]:                                     
                 # ["Horário", "Aeródromo", "Direção visibilidade mínima", "Visibilidade mínima", "Visibilidade predominante"]
                 M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
             
             # output to display
-            st.dataframe(l_data)
+            st.write(l_data)
 
 # ---------------------------------------------------------------------------------------------
 def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
@@ -221,32 +223,6 @@ def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
     else:
         # show error message 
         st.error("Erro na geração do arquivo")
-
-# ---------------------------------------------------------------------------------------------
-def submit_query(fdct_parm: dict) -> pd.DataFrame:
-    """
-    gera o arquivo de configuração do job
-
-    :param fdct_parm (dict): parâmetros
-    """
-    # logger
-    M_LOG.debug("submit_query >>")
-
-    # connect BDC
-    l_bdc = db.connect_bdc()
-    assert l_bdc
-
-    M_LOG.debug("fdct_parm: %s", str(fdct_parm))
-
-    # query BDC
-    ldf_data = db.get_from_bdc(l_bdc, fdct_parm)
-    M_LOG.debug("ldf_data: %s", str(ldf_data))
-
-    # close connection
-    l_bdc.close()
-
-    # return
-    return ldf_data
 
 # ---------------------------------------------------------------------------------------------
 def main():

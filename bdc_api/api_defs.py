@@ -44,6 +44,12 @@ DS_MID_DSP = "Tela"
 # mídias de saída válidos
 DLST_MIDIAS = [DS_MID_ARQ, DS_MID_DSP]
 
+# data keys
+DS_KEY_DTFIM = "data_fim"
+DS_KEY_DTINI = "data_ini"
+DS_KEY_LOCAL = "local"
+DS_KEY_VIEW = "view"
+
 # tipos de dados
 DDCT_VIEWS = {"Precipitação": "vwm_unificado_precipitacao",
               "Pressão": "vwm_unificado_pressao",

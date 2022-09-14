@@ -1,6 +1,6 @@
 ###
 # target systems
-TARGET_SYS = ./clsapi
+TARGET_SYS = ./bdc_api
 
 ###
 # config

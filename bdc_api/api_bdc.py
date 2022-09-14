@@ -89,31 +89,31 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
     M_LOG.info(">> get_from_bdc")
 
     # check input
-    assert fdct_parm["view"] in list(df.DDCT_VIEWS.values())
+    assert fdct_parm[df.DS_KEY_VIEW] in list(df.DDCT_VIEWS.values())
 
     # data inicial
-    ls_data_ini = fdct_parm["ini"]
+    ls_data_ini = fdct_parm[df.DS_KEY_DTINI]
     ls_data_ini = "{}-{}-{} {}:00".format(ls_data_ini[:4], 
                                           ls_data_ini[4:6],
                                           ls_data_ini[6:8],
                                           ls_data_ini[8:10])
 
     # data final
-    ls_data_fim = fdct_parm["fim"]
+    ls_data_fim = fdct_parm[df.DS_KEY_DTFIM]
     ls_data_fim = "{}-{}-{} {}:59".format(ls_data_fim[:4], 
                                           ls_data_fim[4:6],
                                           ls_data_fim[6:8],
                                           ls_data_fim[8:10])
 
     # precipitação ?
-    if "vwm_unificado_precipitacao" == fdct_parm["view"]:
+    if "vwm_unificado_precipitacao" == fdct_parm[df.DS_KEY_VIEW]:
         # colunas
         ls_columns = "hora_observacao, sigla, durpreci, precip"
         # headers
         llst_headers = ["Horário", "Aeródromo", "Duração", "Precipitação"]
 
     # pressão ?
-    elif "vwm_unificado_pressao" == fdct_parm["view"]:
+    elif "vwm_unificado_pressao" == fdct_parm[df.DS_KEY_VIEW]:
         # colunas
         ls_columns = "hora_observacao, sigla, qnh, qfe, qff, tendpressao, alt850hpa"
         # headers
@@ -121,14 +121,14 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
                         "Tendência da pressão", "Altitude 850hpa"]
 
     # RVR ?
-    elif "vwm_unificado_rvr" == fdct_parm["view"]:
+    elif "vwm_unificado_rvr" == fdct_parm[df.DS_KEY_VIEW]:
         # colunas
         ls_columns = "hora_observacao, cabeceira, rvr"
         # headers
         llst_headers = ["Horário", "Cabeceira", "RVR"]
 
     # temperatura ?
-    elif "vwm_unificado_temperatura" == fdct_parm["view"]:
+    elif "vwm_unificado_temperatura" == fdct_parm[df.DS_KEY_VIEW]:
         # colunas
         ls_columns = "hora_observacao, sigla, pista, bseco, bumido, ur, temppista, temppo"
         # headers
@@ -137,14 +137,14 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
                         "Temperatura do ponto de orvalho"]
 
     # teto ?
-    elif "vwm_unificado_teto" == fdct_parm["view"]:
+    elif "vwm_unificado_teto" == fdct_parm[df.DS_KEY_VIEW]:
         # colunas
         ls_columns = "hora_observacao, sigla, pista, teto"
         # headers
         llst_headers = ["Horário", "Aeródromo", "Pista", "Teto"]
 
     # vento ?
-    elif "vwm_unificado_vento" == fdct_parm["view"]:
+    elif "vwm_unificado_vento" == fdct_parm[df.DS_KEY_VIEW]:
         # colunas
         ls_columns = "hora_observacao, sigla, cabeceira, velvento, dirvento, rajada"
         # headers
@@ -152,7 +152,7 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
                         "Direção do vento", "Rajada"]
 
     # visibilidade ?
-    elif "vwm_unificado_visibilidade" == fdct_parm["view"]:
+    elif "vwm_unificado_visibilidade" == fdct_parm[df.DS_KEY_VIEW]:
         # colunas
         ls_columns = "hora_observacao, sigla, dirvisibmin, visibmin, visibpre"
         # headers
@@ -164,12 +164,38 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
     ls_query = "SELECT {} "\
                "FROM {} "\
                "WHERE sigla = '{}' "\
-               "AND hora_observacao BETWEEN '{}' AND '{}'".format(
-               ls_columns, fdct_parm["view"], fdct_parm["local"],
+               "AND hora_observacao BETWEEN '{}' AND '{}'".format(ls_columns,
+               fdct_parm[df.DS_KEY_VIEW], fdct_parm[df.DS_KEY_LOCAL],
                ls_data_ini, ls_data_fim)               
     M_LOG.debug("ls_query: %s", str(ls_query))
 
     # return data as dataframe        
     return get_as_df(f_bdc, ls_query, llst_headers)
     
+# ---------------------------------------------------------------------------------------------
+def submit_query(fdct_parm: dict) -> pd.DataFrame:
+    """
+    gera o arquivo de configuração do job
+
+    :param fdct_parm (dict): parâmetros
+    """
+    # logger
+    M_LOG.debug("submit_query >>")
+
+    # connect BDC
+    l_bdc = connect_bdc()
+    assert l_bdc
+
+    M_LOG.debug("fdct_parm: %s", str(fdct_parm))
+
+    # query BDC
+    ldf_data = get_from_bdc(l_bdc, fdct_parm)
+    M_LOG.debug("ldf_data: %s", str(ldf_data))
+
+    # close connection
+    l_bdc.close()
+
+    # return
+    return ldf_data
+
 # < the end >----------------------------------------------------------------------------------

@@ -7,17 +7,16 @@ api_run
 # < imports >----------------------------------------------------------------------------------
 
 # python library
-import datetime
-import json
 import logging
+import socket
 import sys
 
 # flask
 import flask
 
 # local
-import bdc_api.api_bdc as db
 import bdc_api.api_defs as df
+import bdc_api.api_prc as pr
 
 # < logging >----------------------------------------------------------------------------------
 
@@ -34,89 +33,109 @@ assert lapp
 lapp.config["DEBUG"] = True
 
 # ---------------------------------------------------------------------------------------------
-@lapp.route("/api/v1/data", methods=["GET"])
-def api_filter():
+@lapp.route("/api/v1/precipitacao", methods=["GET"])
+def api_precipitacao():
     """
-    api filter
+    api precipitacao
     """
     # logger
-    M_LOG.info(">> api_filter")
+    M_LOG.info(">> api_precipitacao")
 
     # logger
-    M_LOG.debug("request: %s", str(flask.request.args))
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
-    # request parameters    
-    ldct_params = flask.request.args
-
-    # estação
-    ls_estacao = ldct_params.get("estacao", None)
-
-    if not valida_estacao(ls_estacao):
-        # display an error in the browser
-        M_LOG.error("'estacao' não fornecida ou inválida. Especifique uma estação.")
-        # return
-        return "'estacao' não fornecida ou inválida. Especifique uma estação."
-
-    # data atual
-    ldt_now = datetime.datetime.now()
-
-    # data inicial
-    ls_data_ini = ldct_params.get("data_ini", None)
-
-    if not valida_data(ls_data_ini):
-        # display an error in the browser
-        M_LOG.error("'data_ini' não fornecida ou inválida. Assumindo data atual.")
-        # assumindo data atual
-        ls_data_ini = ldt_now.strftime("%Y%m%d") + "00"
-
-    # data final
-    ls_data_fim = ldct_params.get("data_fim", None)
-
-    if not valida_data(ls_data_fim):
-        # display an error in the browser
-        M_LOG.error("'data_fim' não fornecida ou inválida. Assumindo data atual.")
-        # assumindo data atual
-        ls_data_fim = ldt_now.strftime("%Y%m%d") + "23"
-
-    # connect BDC
-    l_bdc = db.connect_bdc()
-    assert l_bdc
-
-    # query BDC
-    llst_results = db.get_from_bdc(l_bdc, ls_estacao, ls_data_ini, ls_data_fim)
-    M_LOG.debug("llst_results: %s", str(llst_results))
-
-    # close connection
-    l_bdc.close()
-
-    # return a converted list of dictionaries
-    return llst_results
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_precipitacao")
 
 # ---------------------------------------------------------------------------------------------
-def dict_factory(f_cursor, f_row):
+@lapp.route("/api/v1/pressao", methods=["GET"])
+def api_pressao():
     """
-    dict_factory
+    api pressao
     """
     # logger
-    M_LOG.info(">> dict_factory")
+    M_LOG.info(">> api_pressao")
 
-    # init temp dict
-    ldct_tmp = {}
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
-    # for all columns...
-    for lidx, lcol in enumerate(f_cursor.description):
-        # datetime ? 
-        if isinstance(f_row[lidx], datetime.datetime):
-            # format date
-            ldct_tmp[lcol[0]] = f_row[lidx].strftime("%Y/%m/%d, %H:%M")
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_pressao")
 
-        # senão,...
-        else:
-            # keep format
-            ldct_tmp[lcol[0]] = f_row[lidx]
+# ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/rvr", methods=["GET"])
+def api_rvr():
+    """
+    api rvr
+    """
+    # logger
+    M_LOG.info(">> api_rvr")
 
-    # return dictionary
-    return ldct_tmp
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_rvr")
+
+# ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/temperatura", methods=["GET"])
+def api_temperatura():
+    """
+    api temperatura
+    """
+    # logger
+    M_LOG.info(">> api_temperatura")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_temperatura")
+
+# ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/teto", methods=["GET"])
+def api_teto():
+    """
+    api teto
+    """
+    # logger
+    M_LOG.info(">> api_teto")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_teto")
+
+# ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/vento", methods=["GET"])
+def api_vento():
+    """
+    api vento
+    """
+    # logger
+    M_LOG.info(">> api_vento")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_vento")
+
+# ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/visibilidade", methods=["GET"])
+def api_visibilidade():
+    """
+    api visibilidade
+    """
+    # logger
+    M_LOG.info(">> api_visibilidade")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_visibilidade")
 
 # ---------------------------------------------------------------------------------------------
 @lapp.route("/", methods=["GET"])
@@ -144,57 +163,6 @@ def page_not_found(err):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 # ---------------------------------------------------------------------------------------------
-def valida_data(fs_data: str):
-    """
-    valida data final
-    """
-    # logger
-    M_LOG.info(">> valida_data")
-
-    # não tem conteúdo ?
-    if not fs_data:
-        # return error
-        return False
-
-    try:
-        # convert date
-        # ldt_date = datetime.datetime.strptime(fs_data, '%Y%m%d%H')
-
-        # split da data
-        li_ano = int(fs_data[:4])
-        li_mes = int(fs_data[4:6])
-        li_dia = int(fs_data[6:8])
-        li_hor = int(fs_data[8:10])
-
-    # em caso de erro...
-    except ValueError as lerr:
-        # return error
-        return False
-        
-    # ok
-    lv_ok = True
-
-    # valida os campos da data
-    lv_ok &= 2000 <= li_ano <= datetime.date.today().year
-    lv_ok &= 1 <= li_mes <= 12
-    lv_ok &= 1 <= li_dia <= 31
-    lv_ok &= 0 <= li_hor <= 23
-
-    # return
-    return lv_ok
-
-# ---------------------------------------------------------------------------------------------
-def valida_estacao(fs_estacao: str):
-    """
-    valida estação
-    """
-    # logger
-    M_LOG.info(">> valida_estacao")
-
-    # return
-    return True if fs_estacao else False
-
-# ---------------------------------------------------------------------------------------------
 def main():
     """
     main
@@ -202,8 +170,13 @@ def main():
     # logger
     M_LOG.info(">> main")
 
+    # hostname
+    ls_hostname = socket.gethostname()
+    # ip address
+    ls_addr = socket.gethostbyname(ls_hostname)
+
     # flask run
-    lapp.run(host="172.18.30.30", port=7000)
+    lapp.run(host=ls_addr, port=7000)
 
 # ---------------------------------------------------------------------------------------------
 # this is the bootstrap process
