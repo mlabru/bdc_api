@@ -37,7 +37,7 @@ def connect_bdc(fs_user: typing.Optional[str] = df.DS_BDC_USER,
     :param fs_host (str): host
     :param fs_db (str): database
 
-    :returns: BDC connections
+    :returns: BDC connection
     """
     # logger
     M_LOG.info(">> connect_bdc")
@@ -57,6 +57,8 @@ def get_as_df(f_bdc, fs_query: str, flst_columns: list) -> pd.DataFrame:
     :param f_bdc: conexão com o BDC
     :param fs_query: query
     :param flst_columns: lista de títulos das colunas
+
+    :returns: dataframe com resultado da pesquisa no banco
     """
     # logger
     M_LOG.info(">> get_as_df")
@@ -84,6 +86,8 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
 
     :param f_bdc: conexão com o BDC
     :param fdct_parm (str): query parameters
+
+    :returns: dataframe com resultado da pesquisa no banco
     """
     # logger
     M_LOG.info(">> get_from_bdc")
@@ -212,7 +216,6 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
                "AND {} BETWEEN '{}' AND '{}'".format(ls_columns,
                fdct_parm[df.DS_KEY_VIEW], fdct_parm[df.DS_KEY_LOCAL],
                ls_key, ls_data_ini, ls_data_fim)               
-    M_LOG.debug("ls_query: %s", str(ls_query))
 
     # return data as dataframe        
     return get_as_df(f_bdc, ls_query, llst_headers)
@@ -220,9 +223,11 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
 # ---------------------------------------------------------------------------------------------
 def submit_query(fdct_parm: dict) -> pd.DataFrame:
     """
-    gera o arquivo de configuração do job
+    submete a query ao banco de dados
 
     :param fdct_parm (dict): parâmetros
+
+    :returns: dataframe com resultado da pesquisa no banco
     """
     # logger
     M_LOG.debug("submit_query >>")
@@ -231,11 +236,8 @@ def submit_query(fdct_parm: dict) -> pd.DataFrame:
     l_bdc = connect_bdc()
     assert l_bdc
 
-    M_LOG.debug("fdct_parm: %s", str(fdct_parm))
-
     # query BDC
     ldf_data = get_from_bdc(l_bdc, fdct_parm)
-    M_LOG.debug("ldf_data: %s", str(ldf_data))
 
     # close connection
     l_bdc.close()

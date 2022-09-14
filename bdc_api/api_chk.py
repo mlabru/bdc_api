@@ -22,6 +22,10 @@ M_LOG.setLevel(df.DI_LOG_LEVEL)
 def _check_date(fs_data: str) -> bool:
     """
     valida data
+
+    :param fs_data (str): data
+
+    :returns: True if ok False otherwise
     """
     # logger
     M_LOG.info(">> _check_date")
@@ -62,6 +66,10 @@ def _check_date(fs_data: str) -> bool:
 def _check_local(fs_local: str) -> bool:
     """
     valida localidade
+
+    :param fs_local (str): localidade
+
+    :returns: True if ok False otherwise
     """
     # logger
     M_LOG.info(">> _check_local")
@@ -78,6 +86,10 @@ def _check_local(fs_local: str) -> bool:
 def check_params(fdct_parms: dict) -> bool:
     """
     valida parâmetros
+
+    :param fdct_parms (dict): parâmetros
+
+    :returns: True if ok False otherwise
     """
     # logger
     M_LOG.info(">> check_params")
@@ -119,9 +131,11 @@ def check_params(fdct_parms: dict) -> bool:
     return True
 
 # ---------------------------------------------------------------------------------------------
-def _check_1year(fdct_parms: dict) -> bool:
+def _check_1year(fdct_parms: dict):
     """
-    valida data final
+    valida intervalo menor que 1 ano
+
+    :param fdct_parms (dict): parâmetros
     """
     # logger
     M_LOG.info(">> _check_1year")
@@ -137,7 +151,7 @@ def _check_1year(fdct_parms: dict) -> bool:
     lf_diff_in_s = ldt_diff.total_seconds()
 
     # duration in years (seconds in a year = 365*24*60*60 = 31536000)
-    lf_years = divmod(lf_diff_in_s, 31536000)[0]
+    lf_years = lf_diff_in_s / 31536000
 
     if lf_years > 1.:
         try:

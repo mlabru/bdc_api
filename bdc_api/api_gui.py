@@ -2,10 +2,7 @@
 """
 api_gui
 
-2022.jun  mlabru  remove rabbitmq cause of timeout problems, remove graylog
-2022.may  mlabru  rabbitmq connection timeout
-2022.apr  mlabru  graylog log management
-2021.nov  mlabru  initial version (Linux/Python)
+2022.sep  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
@@ -16,6 +13,7 @@ import json
 import logging
 import pathlib
 import time
+import unicodedata
 
 # pandas
 import pandas as pd
@@ -27,11 +25,45 @@ import streamlit as st
 import bdc_api.api_bdc as db
 import bdc_api.api_defs as df
 
+# < constants >--------------------------------------------------------------------------------
+
+# shared labels
+DS_LBL_VIEW = "View de dados:"
+DS_LBL_PESQ = "Pesquisar"
+DS_LBL_WAIT = "Aguarde..."
+
 # < logging >----------------------------------------------------------------------------------
 
 # logger
 M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
+
+# ---------------------------------------------------------------------------------------------
+def build_filename(fs_view: str, fs_loc: str, fs_data: str):
+    """
+    build file name
+
+    :param fs_view (str): tipo de pesquisa
+    :param fs_loc (str): localidade
+    :param fs_data (str): data
+
+    :returns: filename
+    """
+    # logger
+    M_LOG.debug(">> build_filename")
+
+    # filename
+    ls_fname = f"{fs_view}_{fs_loc}_{fs_data_ini}"
+
+    # convert to lowercase & replace spaces
+    ls_fname = ls_fname.lower().replace(" ", "_")
+
+    # remove accents
+    ls_fname = ''.join(c for c in unicodedata.normalize("NFD", ls_fname)
+                       if unicodedata.category(c) != "Mn")
+
+    # return filename
+    return ls_fname
 
 # ---------------------------------------------------------------------------------------------
 def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
@@ -43,9 +75,7 @@ def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
     :param fs_fname (str): file name
     """
     # logger
-    M_LOG.debug("out_file >>")
-
-    M_LOG.debug("head: %s", str(f_dataframe.head())) 
+    M_LOG.debug(">> out_file")
 
     # output CSV ?
     if df.DS_FMT_CSV == fs_fmt:
@@ -59,7 +89,7 @@ def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
         # create buffer
         l_buffer = io.BytesIO()
 
-        # create a Pandas Excel writer using XlsxWriter as the engine
+        # create a Pandas Excel Writer using XlsxWriter as the engine
         with pd.ExcelWriter(l_buffer, engine="xlsxwriter") as l_writer:
             # write dataframe to worksheet
             f_dataframe.to_excel(l_writer, sheet_name=fs_fname)
@@ -94,10 +124,10 @@ def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
 # ---------------------------------------------------------------------------------------------
 def pag_altitude():
     """
-    página de execução do OpenBDC
+    página de execução de dados de altitude
     """
     # logger
-    M_LOG.debug("pag_superficie >>")
+    M_LOG.debug(">> pag_altitude")
 
     # top image
     st.image("openbdc.jpg")
@@ -105,29 +135,29 @@ def pag_altitude():
     # título da página
     st.title("Dados de Altitude")
 
-    # seleção do tipo de dado
-    ls_view = st.selectbox("Tipo de dado:", df.DDCT_VIEWS_ALT.keys())
-
+    # seleção da view de dados
+    ls_view = st.selectbox(DS_LBL_VIEW, df.DDCT_VIEWS_ALT.keys())
+    
+    # create parameters
+    ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS_ALT[ls_view]}
+    
     # widget de localidade e data
-    ldct_parm, ls_midia, ls_fmt = wid_loc_dat()
-    # update view
-    ldct_parm[df.DS_KEY_VIEW] = df.DDCT_VIEWS[ls_view]
+    ls_midia, ls_fmt = wid_loc_dat(ldct_parm)
 
     # submit button
-    lv_submit = st.button("Pesquisar")
+    lv_submit = st.button(DS_LBL_PESQ)
 
     if lv_submit:
         # show message
-        with st.spinner("Aguarde..."):
+        with st.spinner(DS_LBL_WAIT):
             # submit query
             l_data = db.submit_query(ldct_parm)
 
         # saída em arquivo ?
         if df.DS_MID_ARQ == ls_midia:
             # build filename
-            ls_fname = "{}_{}_{}".format(ls_view, df.DDCT_LOCAL[ls_loc], 
-                       ls_data_ini).lower().replace("ç", "c").replace("ã", "a")
-            M_LOG.debug("ls_fname: %s", str(ls_fname))
+            ls_fname = build_filename(ls_view, df.DDCT_LOCAL[ls_loc], ls_data_ini)
+            M_LOG.debug("ls_fname: %s", ls_fname)
 
             # output to file
             out_file(l_data, ls_fmt, ls_fname)
@@ -150,10 +180,10 @@ def pag_altitude():
 # ---------------------------------------------------------------------------------------------
 def pag_superficie():
     """
-    página de execução do OpenBDC
+    página de execução de dados de superfície
     """
     # logger
-    M_LOG.debug("pag_superficie >>")
+    M_LOG.debug(">> pag_superficie")
 
     # top image
     st.image("openbdc.jpg")
@@ -162,27 +192,27 @@ def pag_superficie():
     st.title("Dados de Superfície")
 
     # seleção do tipo de dado
-    ls_view = st.selectbox("Tipo de dado:", df.DDCT_VIEWS_SUP.keys())
+    ls_view = st.selectbox(DS_LBL_VIEW, df.DDCT_VIEWS_SUP.keys())
 
+    # create parameters
+    ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS_ALT[ls_view]}
+    
     # widget de localidade e data
-    ldct_parm, ls_midia, ls_fmt = wid_loc_dat()
-    # update view
-    ldct_parm[df.DS_KEY_VIEW] = df.DDCT_VIEWS[ls_view]
+    ls_midia, ls_fmt = wid_loc_dat(ldct_parm)
     
     # submit button
-    lv_submit = st.button("Pesquisar")
+    lv_submit = st.button(DS_LBL_PESQ)
 
     if lv_submit:
         # show message
-        with st.spinner("Aguarde..."):
+        with st.spinner(DS_LBL_WAIT):
             # submit query
             l_data = db.submit_query(ldct_parm)
 
         # saída em arquivo ?
         if df.DS_MID_ARQ == ls_midia:
             # build filename
-            ls_fname = "{}_{}_{}".format(ls_view, df.DDCT_LOCAL[ls_loc], 
-                       ls_data_ini).lower().replace("ç", "c").replace("ã", "a")
+            ls_fname = build_filename(ls_view, df.DDCT_LOCAL[ls_loc], ls_data_ini)
             M_LOG.debug("ls_fname: %s", str(ls_fname))
 
             # output to file
@@ -199,17 +229,19 @@ def pag_superficie():
             elif "vwm_unificado_precipitacao" == ldct_parm[df.DS_KEY_VIEW]:                                       
                 # convert "Precipitação" from string to float
                 l_data["Precipitação"] = l_data["Precipitação"].astype(float)
+
                 # style format
                 # l_data.style.format("{:.2f}")
-                l_data.style.format({"Precipitação": "{:.2f}"})
+                # l_data.style.format({"Precipitação": "{:.2f}"})
                                                                                                         
             # pressão ?                                                                                 
             elif "vwm_unificado_pressao" == ldct_parm[df.DS_KEY_VIEW]:                                          
                 # convert multiple columns to float
                 l_data = l_data.astype({"QNH": "float", "QFE": "float", "QFF": "float"})
+
                 # style format
                 # l_data.style.format("{:.2f}")
-                l_data.style.format(subset=["QNH"], formatter="{:.2f}")
+                # l_data.style.format(subset=["QNH"], formatter="{:.2f}")
                                                                                                         
             # RVR ?                                                                                     
             elif "vwm_unificado_rvr" == ldct_parm[df.DS_KEY_VIEW]:                                              
@@ -241,15 +273,21 @@ def pag_superficie():
             st.write(l_data)
 
 # ---------------------------------------------------------------------------------------------
-def wid_loc_dat():
+def wid_loc_dat(fdct_parm: dict):
     """
-    widgets de localidade e data
+    widgets de localidade, data, mídia e formato de saída
+
+    :param fdct_parm (dict): parâmetros
+
+    :returns: mídia e formato de saída
     """
     # logger
     M_LOG.info(">> wid_loc_dat")
 
     # seleção da localidade
     ls_loc = st.selectbox("Localidade:", df.DDCT_LOCAL.keys())
+    # update parameters
+    fdct_parm[df.DS_KEY_LOCAL] = df.DDCT_LOCAL[ls_loc]
 
     # cria 2 colunas
     lwd_col1, lwd_col2 = st.columns(2)
@@ -287,17 +325,12 @@ def wid_loc_dat():
             ls_fmt = df.DS_FMT_JSON
 
     # data início
-    ls_data_ini = ldt_ini.strftime("%Y%m%d") + "{:02d}".format(li_hora_ini)
+    fdct_parm[df.DS_KEY_DTINI] = ldt_ini.strftime("%Y%m%d") + "{:02d}".format(li_hora_ini)
     # data final
-    ls_data_fim = ldt_fim.strftime("%Y%m%d") + "{:02d}".format(li_hora_fim)
+    fdct_parm[df.DS_KEY_DTFIM] = ldt_fim.strftime("%Y%m%d") + "{:02d}".format(li_hora_fim)
 
-    # gera parâmetros
-    ldct_parm = {df.DS_KEY_LOCAL: df.DDCT_LOCAL[ls_loc],
-                 df.DS_KEY_DTINI: ls_data_ini, 
-                 df.DS_KEY_DTFIM: ls_data_fim}
-
-    # return parâmeters
-    return ldct_parm, ls_midia, ls_fmt
+    # return mídia & formato de saída
+    return ls_midia, ls_fmt
 
 # ---------------------------------------------------------------------------------------------
 def main():
@@ -310,15 +343,15 @@ def main():
     # app title
     st.sidebar.title("OpenBDC")
     # app selection
-    ls_pg_sel = st.sidebar.selectbox("Selecione o aplicativo", ["Dados de Altitude",
-                                                                "Dados de Superfície"])
+    ls_pg_sel = st.sidebar.selectbox("Selecione a pesquisa", DLST_PESQUISA)
+
     # dados de altitude ?
-    if "Dados de Altitude" == ls_pg_sel:
+    if df.DS_PSQ_ALT == ls_pg_sel:
         # call BDC page
         pag_altitude()
 
     # dados de superfície ?
-    elif "Dados de Superfície" == ls_pg_sel:
+    elif df.DS_PSQ_SUP == ls_pg_sel:
         # call BDC page
         pag_superficie()
 

@@ -2,7 +2,7 @@
 """
 api_defs
 
-2022.aep  mlabru  initial version (Linux/Python)
+2022.sep  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
 
@@ -28,6 +28,13 @@ DS_BDC_DB = os.getenv("DS_BDC_DB")
 
 # logging level
 DI_LOG_LEVEL = logging.WARNING
+
+# tipo de pesquisa
+DS_PSQ_ALT = "Dados de Altitude"
+DS_PSQ_SUP = "Dados de Superfície"
+
+# tipos de pesquisa válidos
+DLST_PESQUISA = [DS_PSQ_ALT, DS_PSQ_SUP]
 
 # formatos de saída
 DS_FMT_CSV = "CSV"

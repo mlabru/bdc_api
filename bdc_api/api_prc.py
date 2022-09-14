@@ -20,12 +20,14 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def processa_request(fdct_parms: dict, fs_view: str):
+def processa_request(fdct_parms: dict, fs_view: str) -> str:
     """
     processa request
 
     :param fdct_parms(dict): parâmetros
     :param fs_view(str): view
+
+    :returns: a converted list of dictionaries to JSON
     """
     # logger
     M_LOG.info(">> processa_request")
