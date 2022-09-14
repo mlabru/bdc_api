@@ -34,139 +34,6 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def pag_superficie():
-    """
-    página de execução do OpenBDC
-    """
-    # logger
-    M_LOG.debug("pag_superficie >>")
-
-    # top image
-    st.image("openbdc.jpg")
-
-    # título da página
-    st.title("Dados de Superfície")
-
-    # seleção do tipo de dado
-    ls_view = st.selectbox("Tipo de dado:", df.DDCT_VIEWS.keys())
-
-    # seleção da localidade
-    ls_loc = st.selectbox("Localidade:", df.DDCT_LOCAL.keys())
-
-    # cria 2 colunas
-    lwd_col1, lwd_col2 = st.columns(2)
-
-    # na coluna 1...
-    with lwd_col1:
-        # data início
-        ldt_ini = st.date_input("Data Inicial (AAAA/MM/DD):",
-                                min_value=datetime.date(2000, 1, 1),
-                                max_value=datetime.datetime.now())
-        # data final
-        ldt_fim = st.date_input("Data Final (AAAA/MM/DD):",
-                                min_value=datetime.date(2000, 1, 1),
-                                max_value=datetime.datetime.now())
-        # midia de saída
-        ls_midia = st.selectbox("Mídia de saída:", df.DLST_MIDIAS)
-
-    # na coluna 2...
-    with lwd_col2:
-        # hora início
-        li_hora_ini = st.number_input("Hora Inicial:",
-                                      min_value=0, max_value=23, format="%02d")
-        # hora início
-        li_hora_fim = st.number_input("Hora Final:",
-                                      min_value=0, max_value=23, format="%02d",
-                                      value=23)
-        # saída em arquivo ?
-        if df.DS_MID_ARQ == ls_midia:
-            # formato de saída
-            ls_fmt = st.selectbox("Formato de saída:", df.DLST_FORMATS)
-
-        # senão,...
-        else:
-            # formato de saída padrão
-            ls_fmt = df.DS_FMT_JSON
-
-    # data início
-    ls_data_ini = ldt_ini.strftime("%Y%m%d") + "{:02d}".format(li_hora_ini)
-    # data final
-    ls_data_fim = ldt_fim.strftime("%Y%m%d") + "{:02d}".format(li_hora_fim)
-
-    # gera parâmetros
-    ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS[ls_view],
-                 df.DS_KEY_LOCAL: df.DDCT_LOCAL[ls_loc],
-                 df.DS_KEY_DTINI: ls_data_ini, 
-                 df.DS_KEY_DTFIM: ls_data_fim}
-
-    # submit button
-    lv_submit = st.button("Pesquisar")
-
-    if lv_submit:
-        # show message
-        with st.spinner("Aguarde..."):
-            # submit query
-            l_data = db.submit_query(ldct_parm)
-
-        # saída em arquivo ?
-        if df.DS_MID_ARQ == ls_midia:
-            # build filename
-            ls_fname = "{}_{}_{}".format(ls_view, df.DDCT_LOCAL[ls_loc], 
-                       ls_data_ini).lower().replace("ç", "c").replace("ã", "a")
-            M_LOG.debug("ls_fname: %s", str(ls_fname))
-
-            # output to file
-            out_file(l_data, ls_fmt, ls_fname)
-
-        # senão,...
-        else:
-            # precipitação ?                                                                            
-            if "vwm_unificado_precipitacao" == ldct_parm[df.DS_KEY_VIEW]:                                       
-                # convert "Precipitação" from string to float
-                l_data["Precipitação"] = l_data["Precipitação"].astype(float)
-                # style format
-                # l_data.style.format("{:.2f}")
-                l_data.style.format({"Precipitação": "{:.2f}"})
-                                                                                                        
-            # pressão ?                                                                                 
-            elif "vwm_unificado_pressao" == ldct_parm[df.DS_KEY_VIEW]:                                          
-                # convert multiple columns to float
-                l_data = l_data.astype({"QNH": "float", "QFE": "float", "QFF": "float"})
-                # style format
-                # l_data.style.format("{:.2f}")
-                l_data.style.format(subset=["QNH"], formatter="{:.2f}")
-                                                                                                        
-            # RVR ?                                                                                     
-            elif "vwm_unificado_rvr" == ldct_parm[df.DS_KEY_VIEW]:                                              
-                # colunas                                                                               
-                ls_columns = "hora_observacao, cabeceira, rvr"                                          
-                                                                                                        
-            # temperatura ?                                                                             
-            elif "vwm_unificado_temperatura" == ldct_parm[df.DS_KEY_VIEW]:                                      
-                # convert multiple columns to float
-                l_data = l_data.astype({"Bulbo seco": "float", "Bulbo úmido": "float",
-                                        "Temperatura da pista": "float",
-                                        "Temperatura do ponto de orvalho": "float"})
-
-            # teto ?                                                                                    
-            elif "vwm_unificado_teto" == ldct_parm[df.DS_KEY_VIEW]:                                             
-                # ["Horário", "Aeródromo", "Pista", "Teto"]
-                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
-
-            # vento ?                                                                                   
-            elif "vwm_unificado_vento" == ldct_parm[df.DS_KEY_VIEW]:                                            
-                # ["Horário", "Aeródromo", "Cabeceira", "Velocidade do vento", "Direção do vento", "Rajada"]
-                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
-                                                                                                        
-            # visibilidade ?                                                                            
-            elif "vwm_unificado_visibilidade" == ldct_parm[df.DS_KEY_VIEW]:                                     
-                # ["Horário", "Aeródromo", "Direção visibilidade mínima", "Visibilidade mínima", "Visibilidade predominante"]
-                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
-            
-            # output to display
-            st.write(l_data)
-
-# ---------------------------------------------------------------------------------------------
 def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
     """
     send output to file
@@ -225,20 +92,233 @@ def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
         st.error("Erro na geração do arquivo")
 
 # ---------------------------------------------------------------------------------------------
+def pag_altitude():
+    """
+    página de execução do OpenBDC
+    """
+    # logger
+    M_LOG.debug("pag_superficie >>")
+
+    # top image
+    st.image("openbdc.jpg")
+
+    # título da página
+    st.title("Dados de Altitude")
+
+    # seleção do tipo de dado
+    ls_view = st.selectbox("Tipo de dado:", df.DDCT_VIEWS_ALT.keys())
+
+    # widget de localidade e data
+    ldct_parm, ls_midia, ls_fmt = wid_loc_dat()
+    # update view
+    ldct_parm[df.DS_KEY_VIEW] = df.DDCT_VIEWS[ls_view]
+
+    # submit button
+    lv_submit = st.button("Pesquisar")
+
+    if lv_submit:
+        # show message
+        with st.spinner("Aguarde..."):
+            # submit query
+            l_data = db.submit_query(ldct_parm)
+
+        # saída em arquivo ?
+        if df.DS_MID_ARQ == ls_midia:
+            # build filename
+            ls_fname = "{}_{}_{}".format(ls_view, df.DDCT_LOCAL[ls_loc], 
+                       ls_data_ini).lower().replace("ç", "c").replace("ã", "a")
+            M_LOG.debug("ls_fname: %s", str(ls_fname))
+
+            # output to file
+            out_file(l_data, ls_fmt, ls_fname)
+
+        # senão,...
+        else:
+            # temperatura altitude nível padrão ?
+            if "vwm_temperatura_altitude_nivelpadrao" == ldct_parm[df.DS_KEY_VIEW]:
+                # convert multiple columns to float
+                l_data = l_data.astype({"Temperatura": "float", "Umidade relativa": "int",
+                                        "Ponto de orvalho": "float", "Altitude": "float"})
+            # vento altitude nível padrão ?
+            elif "vwm_vento_altitude_nivelpadrao" == ldct_parm[df.DS_KEY_VIEW]:
+                # convert multiple columns to float
+                l_data = l_data.astype({"Velocidade do vento": "float", "Altitude": "float"})
+
+            # output to display
+            st.write(l_data)
+
+# ---------------------------------------------------------------------------------------------
+def pag_superficie():
+    """
+    página de execução do OpenBDC
+    """
+    # logger
+    M_LOG.debug("pag_superficie >>")
+
+    # top image
+    st.image("openbdc.jpg")
+
+    # título da página
+    st.title("Dados de Superfície")
+
+    # seleção do tipo de dado
+    ls_view = st.selectbox("Tipo de dado:", df.DDCT_VIEWS_SUP.keys())
+
+    # widget de localidade e data
+    ldct_parm, ls_midia, ls_fmt = wid_loc_dat()
+    # update view
+    ldct_parm[df.DS_KEY_VIEW] = df.DDCT_VIEWS[ls_view]
+    
+    # submit button
+    lv_submit = st.button("Pesquisar")
+
+    if lv_submit:
+        # show message
+        with st.spinner("Aguarde..."):
+            # submit query
+            l_data = db.submit_query(ldct_parm)
+
+        # saída em arquivo ?
+        if df.DS_MID_ARQ == ls_midia:
+            # build filename
+            ls_fname = "{}_{}_{}".format(ls_view, df.DDCT_LOCAL[ls_loc], 
+                       ls_data_ini).lower().replace("ç", "c").replace("ã", "a")
+            M_LOG.debug("ls_fname: %s", str(ls_fname))
+
+            # output to file
+            out_file(l_data, ls_fmt, ls_fname)
+
+        # senão,...
+        else:
+            # CGT ?
+            if "vwm_unificado_cgt" == ldct_parm[df.DS_KEY_VIEW]:
+                # ["Horário", "Aeródromo", "CGT 1", "CGT 2", "CGT 3"]
+                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
+
+            # precipitação ?                                                                            
+            elif "vwm_unificado_precipitacao" == ldct_parm[df.DS_KEY_VIEW]:                                       
+                # convert "Precipitação" from string to float
+                l_data["Precipitação"] = l_data["Precipitação"].astype(float)
+                # style format
+                # l_data.style.format("{:.2f}")
+                l_data.style.format({"Precipitação": "{:.2f}"})
+                                                                                                        
+            # pressão ?                                                                                 
+            elif "vwm_unificado_pressao" == ldct_parm[df.DS_KEY_VIEW]:                                          
+                # convert multiple columns to float
+                l_data = l_data.astype({"QNH": "float", "QFE": "float", "QFF": "float"})
+                # style format
+                # l_data.style.format("{:.2f}")
+                l_data.style.format(subset=["QNH"], formatter="{:.2f}")
+                                                                                                        
+            # RVR ?                                                                                     
+            elif "vwm_unificado_rvr" == ldct_parm[df.DS_KEY_VIEW]:                                              
+                # ["Horário", "Aeródromo", "Pista", "Teto"]
+                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
+                                                                                                        
+            # temperatura ?                                                                             
+            elif "vwm_unificado_temperatura" == ldct_parm[df.DS_KEY_VIEW]:                                      
+                # convert multiple columns to float
+                l_data = l_data.astype({"Bulbo seco": "float", "Bulbo úmido": "float",
+                                        "Temperatura da pista": "float",
+                                        "Temperatura do ponto de orvalho": "float"})
+            # teto ?                                                                                    
+            elif "vwm_unificado_teto" == ldct_parm[df.DS_KEY_VIEW]:                                             
+                # ["Horário", "Aeródromo", "Pista", "Teto"]
+                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
+
+            # vento ?                                                                                   
+            elif "vwm_unificado_vento" == ldct_parm[df.DS_KEY_VIEW]:                                            
+                # ["Horário", "Aeródromo", "Cabeceira", "Velocidade do vento", "Direção do vento", "Rajada"]
+                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
+                                                                                                        
+            # visibilidade ?                                                                            
+            elif "vwm_unificado_visibilidade" == ldct_parm[df.DS_KEY_VIEW]:                                     
+                # ["Horário", "Aeródromo", "Direção visibilidade mínima", "Visibilidade mínima", "Visibilidade predominante"]
+                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
+
+            # output to display
+            st.write(l_data)
+
+# ---------------------------------------------------------------------------------------------
+def wid_loc_dat():
+    """
+    widgets de localidade e data
+    """
+    # logger
+    M_LOG.info(">> wid_loc_dat")
+
+    # seleção da localidade
+    ls_loc = st.selectbox("Localidade:", df.DDCT_LOCAL.keys())
+
+    # cria 2 colunas
+    lwd_col1, lwd_col2 = st.columns(2)
+
+    # na coluna 1...
+    with lwd_col1:
+        # data início
+        ldt_ini = st.date_input("Data Inicial (AAAA/MM/DD):",
+                                min_value=datetime.date(2000, 1, 1),
+                                max_value=datetime.datetime.now())
+        # data final
+        ldt_fim = st.date_input("Data Final (AAAA/MM/DD):",
+                                min_value=datetime.date(2000, 1, 1),
+                                max_value=datetime.datetime.now())
+        # midia de saída
+        ls_midia = st.selectbox("Mídia de saída:", df.DLST_MIDIAS)
+
+    # na coluna 2...
+    with lwd_col2:
+        # hora início
+        li_hora_ini = st.number_input("Hora Inicial:",
+                                      min_value=0, max_value=23, format="%02d")
+        # hora início
+        li_hora_fim = st.number_input("Hora Final:",
+                                      min_value=0, max_value=23, format="%02d",
+                                      value=23)
+        # saída em arquivo ?
+        if df.DS_MID_ARQ == ls_midia:
+            # formato de saída
+            ls_fmt = st.selectbox("Formato de saída:", df.DLST_FORMATS)
+
+        # senão,...
+        else:
+            # formato de saída padrão
+            ls_fmt = df.DS_FMT_JSON
+
+    # data início
+    ls_data_ini = ldt_ini.strftime("%Y%m%d") + "{:02d}".format(li_hora_ini)
+    # data final
+    ls_data_fim = ldt_fim.strftime("%Y%m%d") + "{:02d}".format(li_hora_fim)
+
+    # gera parâmetros
+    ldct_parm = {df.DS_KEY_LOCAL: df.DDCT_LOCAL[ls_loc],
+                 df.DS_KEY_DTINI: ls_data_ini, 
+                 df.DS_KEY_DTFIM: ls_data_fim}
+
+    # return parâmeters
+    return ldct_parm, ls_midia, ls_fmt
+
+# ---------------------------------------------------------------------------------------------
 def main():
     """
     drive app
     """
     # logger
-    M_LOG.info("main >>")
+    M_LOG.info(">> main")
 
     # app title
     st.sidebar.title("OpenBDC")
     # app selection
-    ls_pg_sel = st.sidebar.selectbox("Selecione o aplicativo", ["Dados de Superfície"])
+    ls_pg_sel = st.sidebar.selectbox("Selecione o aplicativo", ["Dados de Altitude",
+                                                                "Dados de Superfície"])
+    # dados de altitude ?
+    if "Dados de Altitude" == ls_pg_sel:
+        # call BDC page
+        pag_altitude()
 
     # dados de superfície ?
-    if "Dados de Superfície" == ls_pg_sel:
+    elif "Dados de Superfície" == ls_pg_sel:
         # call BDC page
         pag_superficie()
 

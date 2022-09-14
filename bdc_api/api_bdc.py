@@ -105,8 +105,30 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
                                           ls_data_fim[6:8],
                                           ls_data_fim[8:10])
 
-    # precipitação ?
-    if "vwm_unificado_precipitacao" == fdct_parm[df.DS_KEY_VIEW]:
+    # temperatura altitude nível padrão ?
+    if "vwm_temperatura_altitude_nivelpadrao" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "data_hora_observacao"
+        # colunas
+        ls_columns = "data_hora_observacao, sigla, minuto_sondagem, segundo_sondagem, "\
+                     "temperatura, umidade_relativa, ponto_orvalho, altitude, pressao"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "Minuto", "Segundo", "Temperatura",
+                        "Umidade relativa", "Ponto de orvalho", "Altitude", "Pressão"]
+
+    # CGT ?
+    elif "vwm_unificado_cgt" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
+        # colunas
+        ls_columns = "hora_observacao, sigla, cgt_1, cgt_2, cgt_3"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "CGT 1", "CGT 2", "CGT 3"]
+
+    # precipitação
+    elif "vwm_unificado_precipitacao" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
         # colunas
         ls_columns = "hora_observacao, sigla, durpreci, precip"
         # headers
@@ -114,6 +136,8 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
 
     # pressão ?
     elif "vwm_unificado_pressao" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
         # colunas
         ls_columns = "hora_observacao, sigla, qnh, qfe, qff, tendpressao, alt850hpa"
         # headers
@@ -122,6 +146,8 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
 
     # RVR ?
     elif "vwm_unificado_rvr" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
         # colunas
         ls_columns = "hora_observacao, cabeceira, rvr"
         # headers
@@ -129,6 +155,8 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
 
     # temperatura ?
     elif "vwm_unificado_temperatura" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
         # colunas
         ls_columns = "hora_observacao, sigla, pista, bseco, bumido, ur, temppista, temppo"
         # headers
@@ -138,6 +166,8 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
 
     # teto ?
     elif "vwm_unificado_teto" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
         # colunas
         ls_columns = "hora_observacao, sigla, pista, teto"
         # headers
@@ -145,6 +175,8 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
 
     # vento ?
     elif "vwm_unificado_vento" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
         # colunas
         ls_columns = "hora_observacao, sigla, cabeceira, velvento, dirvento, rajada"
         # headers
@@ -153,20 +185,33 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
 
     # visibilidade ?
     elif "vwm_unificado_visibilidade" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
         # colunas
         ls_columns = "hora_observacao, sigla, dirvisibmin, visibmin, visibpre"
         # headers
         llst_headers = ["Horário", "Aeródromo", "Direção visibilidade mínima",
                         "Visibilidade mínima", "Visibilidade predominante"]
 
+    # vento altitude nível padrão ?
+    elif "vwm_vento_altitude_nivelpadrao" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "data_hora_observacao"
+        # colunas
+        ls_columns = "data_hora_observacao, sigla, minuto_sondagem, "\
+                     "segundo_sondagem, velocidade_vento, altitude, pressao"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "Minuto", "Segundo",
+                        "Velocidade do vento", "Altitude", "Pressão"]
+
     # make query
     # pylint: disable=duplicate-string-formatting-argument, consider-using-f-string
     ls_query = "SELECT {} "\
                "FROM {} "\
                "WHERE sigla = '{}' "\
-               "AND hora_observacao BETWEEN '{}' AND '{}'".format(ls_columns,
+               "AND {} BETWEEN '{}' AND '{}'".format(ls_columns,
                fdct_parm[df.DS_KEY_VIEW], fdct_parm[df.DS_KEY_LOCAL],
-               ls_data_ini, ls_data_fim)               
+               ls_key, ls_data_ini, ls_data_fim)               
     M_LOG.debug("ls_query: %s", str(ls_query))
 
     # return data as dataframe        

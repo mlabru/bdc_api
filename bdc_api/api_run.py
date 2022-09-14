@@ -33,10 +33,25 @@ assert lapp
 lapp.config["DEBUG"] = True
 
 # ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/cgt", methods=["GET"])
+def api_cgt():
+    """
+    api CGT
+    """
+    # logger
+    M_LOG.info(">> api_cgt")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_cgt")
+
+# ---------------------------------------------------------------------------------------------
 @lapp.route("/api/v1/precipitacao", methods=["GET"])
 def api_precipitacao():
     """
-    api precipitacao
+    api precipitação
     """
     # logger
     M_LOG.info(">> api_precipitacao")
@@ -51,7 +66,7 @@ def api_precipitacao():
 @lapp.route("/api/v1/pressao", methods=["GET"])
 def api_pressao():
     """
-    api pressao
+    api pressão
     """
     # logger
     M_LOG.info(">> api_pressao")
@@ -66,7 +81,7 @@ def api_pressao():
 @lapp.route("/api/v1/rvr", methods=["GET"])
 def api_rvr():
     """
-    api rvr
+    api RVR
     """
     # logger
     M_LOG.info(">> api_rvr")
@@ -91,6 +106,21 @@ def api_temperatura():
 
     # return a converted list of dictionaries (JSON)
     return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_temperatura")
+
+# ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/temperatura_altitude_nivel_padrao", methods=["GET"])
+def api_temperatura_altitude_nivel_padrao():
+    """
+    api temperatura altitude nível padrão
+    """
+    # logger
+    M_LOG.info(">> api_temperatura_altitude_nivel_padrao")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_temperatura_altitude_nivelpadrao")
 
 # ---------------------------------------------------------------------------------------------
 @lapp.route("/api/v1/teto", methods=["GET"])
@@ -121,6 +151,21 @@ def api_vento():
 
     # return a converted list of dictionaries (JSON)
     return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_vento")
+
+# ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/vento_altitude_nivel_padrao", methods=["GET"])
+def api_vento_altitude_nivel_padrao():
+    """
+    api vento altitude nível padrão
+    """
+    # logger
+    M_LOG.info(">> api_vento_altitude_nivel_padrao")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_vento_altitude_nivelpadrao")
 
 # ---------------------------------------------------------------------------------------------
 @lapp.route("/api/v1/visibilidade", methods=["GET"])
