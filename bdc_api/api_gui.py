@@ -248,7 +248,7 @@ def _send_2file(f_dataframe, fs_fmt: str, fs_fname: str):
         # create a Pandas Excel Writer using XlsxWriter as the engine
         with pd.ExcelWriter(l_buffer, engine="xlsxwriter") as l_writer:
             # write dataframe to worksheet
-            f_dataframe.to_excel(l_writer, sheet_name=fs_fname)
+            f_dataframe.to_excel(l_writer, sheet_name=fs_fname[:30])
 
             # output the excel file to the buffer
             l_writer.save()
