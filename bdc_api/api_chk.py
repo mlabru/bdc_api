@@ -25,7 +25,7 @@ def _check_date(fs_data: str) -> bool:
 
     :param fs_data (str): data
 
-    :returns: True if ok False otherwise
+    :returns: True if ok, False otherwise
     """
     # logger
     M_LOG.info(">> _check_date")
@@ -69,7 +69,7 @@ def _check_local(fs_local: str) -> bool:
 
     :param fs_local (str): localidade
 
-    :returns: True if ok False otherwise
+    :returns: True if ok, False otherwise
     """
     # logger
     M_LOG.info(">> _check_local")
@@ -89,7 +89,7 @@ def check_params(fdct_parms: dict) -> bool:
 
     :param fdct_parms (dict): parâmetros
 
-    :returns: True if ok False otherwise
+    :returns: True if, ok False otherwise
     """
     # logger
     M_LOG.info(">> check_params")
@@ -153,7 +153,7 @@ def _check_1year(fdct_parms: dict):
     # duration in years (seconds in a year = 365*24*60*60 = 31536000)
     lf_years = lf_diff_in_s / 31536000
 
-    if lf_years > 1.:
+    if lf_years > 1:
         try:
             # add 1 year to initial date
             ldt_fim = ldt_ini.replace(year=ldt_ini.year + 1)
@@ -168,5 +168,6 @@ def _check_1year(fdct_parms: dict):
 
         # logger
         M_LOG.warning("request ultrapassa 1 ano. Data: %s", str(fdct_parms[df.DS_KEY_DTFIM]))
+        print("request ultrapassa 1 ano. Data:", str(fdct_parms[df.DS_KEY_DTFIM]))
 
 # < the end >----------------------------------------------------------------------------------

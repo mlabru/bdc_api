@@ -9,6 +9,9 @@ api_prc
 # python library
 import logging
 
+# pandas
+import pandas as pd
+
 # local
 import bdc_api.api_bdc as db
 import bdc_api.api_chk as ck
@@ -18,6 +21,26 @@ import bdc_api.api_defs as df
 
 M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
+
+# ---------------------------------------------------------------------------------------------
+def processa_pesquisa(fdct_parms: dict) -> pd.DataFrame:
+    """
+    processa request
+
+    :param fdct_parms(dict): parâmetros
+
+    :returns: a converted list of dictionaries to JSON
+    """
+    # logger
+    M_LOG.info(">> processa_pesquisa")
+
+    # valida parâmetros
+    if not ck.check_params(fdct_parms):
+        # return empty
+        return {}
+
+    # return a converted list of dictionaries to JSON
+    return db.submit_query(fdct_parms)
 
 # ---------------------------------------------------------------------------------------------
 def processa_request(fdct_parms: dict, fs_view: str) -> str:

@@ -25,7 +25,7 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(logging.ERROR)
 
 # ---------------------------------------------------------------------------------------------
-def connect_bdc(fs_user: typing.Optional[str] = df.DS_BDC_USER,
+def _connect_db(fs_user: typing.Optional[str] = df.DS_BDC_USER,
                 fs_pass: typing.Optional[str] = df.DS_BDC_PASS,
                 fs_host: typing.Optional[str] = df.DS_BDC_HOST,
                 fs_db: typing.Optional[str] = df.DS_BDC_DB):
@@ -40,7 +40,7 @@ def connect_bdc(fs_user: typing.Optional[str] = df.DS_BDC_USER,
     :returns: BDC connection
     """
     # logger
-    M_LOG.info(">> connect_bdc")
+    M_LOG.info(">> _connect_db")
 
     # create connection
     l_bdc = psycopg2.connect(host=fs_host, database=fs_db, user=fs_user, password=fs_pass)
@@ -50,7 +50,7 @@ def connect_bdc(fs_user: typing.Optional[str] = df.DS_BDC_USER,
     return l_bdc
 
 # ---------------------------------------------------------------------------------------------
-def get_as_df(f_bdc, fs_query: str, flst_columns: list) -> pd.DataFrame:
+def _get_as_df(f_bdc, fs_query: str, flst_columns: list) -> pd.DataFrame:
     """
     get dataframe from BDC
 
@@ -61,7 +61,7 @@ def get_as_df(f_bdc, fs_query: str, flst_columns: list) -> pd.DataFrame:
     :returns: dataframe com resultado da pesquisa no banco
     """
     # logger
-    M_LOG.info(">> get_as_df")
+    M_LOG.info(">> _get_as_df")
 
     # create cursor
     l_cursor = f_bdc.cursor()
@@ -80,7 +80,7 @@ def get_as_df(f_bdc, fs_query: str, flst_columns: list) -> pd.DataFrame:
     return ldf_data
 
 # ---------------------------------------------------------------------------------------------
-def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
+def _get_from_db(f_bdc, fdct_parm: dict) -> pd.DataFrame:
     """
     get dataframe from BDC
 
@@ -90,7 +90,7 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
     :returns: dataframe com resultado da pesquisa no banco
     """
     # logger
-    M_LOG.info(">> get_from_bdc")
+    M_LOG.info(">> _get_from_db")
 
     # check input
     assert fdct_parm[df.DS_KEY_VIEW] in list(df.DDCT_VIEWS.values())
@@ -218,7 +218,7 @@ def get_from_bdc(f_bdc, fdct_parm: dict) -> pd.DataFrame:
                ls_key, ls_data_ini, ls_data_fim)               
 
     # return data as dataframe        
-    return get_as_df(f_bdc, ls_query, llst_headers)
+    return _get_as_df(f_bdc, ls_query, llst_headers)
     
 # ---------------------------------------------------------------------------------------------
 def submit_query(fdct_parm: dict) -> pd.DataFrame:
@@ -233,16 +233,16 @@ def submit_query(fdct_parm: dict) -> pd.DataFrame:
     M_LOG.debug("submit_query >>")
 
     # connect BDC
-    l_bdc = connect_bdc()
+    l_bdc = _connect_db()
     assert l_bdc
 
     # query BDC
-    ldf_data = get_from_bdc(l_bdc, fdct_parm)
+    ldf_data = _get_from_db(l_bdc, fdct_parm)
 
     # close connection
     l_bdc.close()
 
-    # return
+    # return dataframe
     return ldf_data
 
 # < the end >----------------------------------------------------------------------------------

@@ -57,11 +57,11 @@ DS_KEY_DTINI = "data_ini"
 DS_KEY_LOCAL = "local"
 DS_KEY_VIEW = "view"
 
-# tipos de dados
+# views de dados de altitude
 DDCT_VIEWS_ALT = {"Temperatura Altitude Nível Padrão": "vwm_temperatura_altitude_nivelpadrao",
                   "Vento Altitude Nível Padrão": "vwm_vento_altitude_nivelpadrao"}
 
-# tipos de dados
+# views de dados de superfície
 DDCT_VIEWS_SUP = {"CGT": "vwm_unificado_cgt",
                   "Precipitação": "vwm_unificado_precipitacao",
                   "Pressão": "vwm_unificado_pressao",
@@ -71,7 +71,7 @@ DDCT_VIEWS_SUP = {"CGT": "vwm_unificado_cgt",
                   "Vento": "vwm_unificado_vento",
                   "Visibilidade": "vwm_unificado_visibilidade"}
 
-# tipos de dados
+# todas as views
 DDCT_VIEWS = DDCT_VIEWS_ALT | DDCT_VIEWS_SUP
 
 # lista de localidades

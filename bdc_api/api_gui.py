@@ -22,8 +22,8 @@ import pandas as pd
 import streamlit as st
 
 # local
-import bdc_api.api_bdc as db
 import bdc_api.api_defs as df
+import bdc_api.api_prc as pr
 
 # < constants >--------------------------------------------------------------------------------
 
@@ -39,7 +39,7 @@ M_LOG = logging.getLogger(__name__)
 M_LOG.setLevel(df.DI_LOG_LEVEL)
 
 # ---------------------------------------------------------------------------------------------
-def build_filename(fs_view: str, fs_loc: str, fs_data: str):
+def _build_filename(fs_view: str, fs_loc: str, fs_data: str):
     """
     build file name
 
@@ -50,10 +50,10 @@ def build_filename(fs_view: str, fs_loc: str, fs_data: str):
     :returns: filename
     """
     # logger
-    M_LOG.debug(">> build_filename")
+    M_LOG.debug(">> _build_filename")
 
     # filename
-    ls_fname = f"{fs_view}_{fs_loc}_{fs_data_ini}"
+    ls_fname = f"{fs_view}_{fs_loc}_{fs_data}"
 
     # convert to lowercase & replace spaces
     ls_fname = ls_fname.lower().replace(" ", "_")
@@ -66,62 +66,6 @@ def build_filename(fs_view: str, fs_loc: str, fs_data: str):
     return ls_fname
 
 # ---------------------------------------------------------------------------------------------
-def out_file(f_dataframe, fs_fmt: str, fs_fname: str):
-    """
-    send output to file
-
-    :param f_dataframe: dataframe
-    :param fs_fmt (str): output format
-    :param fs_fname (str): file name
-    """
-    # logger
-    M_LOG.debug(">> out_file")
-
-    # output CSV ?
-    if df.DS_FMT_CSV == fs_fmt:
-        # filename
-        fs_fname += ".csv"
-        # convert to CSV
-        l_data = f_dataframe.to_csv(index=False).encode("utf-8")
-
-    # output Excel ?
-    elif df.DS_FMT_XLS == fs_fmt:
-        # create buffer
-        l_buffer = io.BytesIO()
-
-        # create a Pandas Excel Writer using XlsxWriter as the engine
-        with pd.ExcelWriter(l_buffer, engine="xlsxwriter") as l_writer:
-            # write dataframe to worksheet
-            f_dataframe.to_excel(l_writer, sheet_name=fs_fname)
-
-            # output the excel file to the buffer
-            l_writer.save()
-
-            # download button
-            st.download_button("Download", data=l_buffer,
-                               file_name=fs_fname + ".xlsx",
-                               mime="application/vnd.ms-excel")
-        # return
-        return
-        
-    # senão,...
-    else:
-        # filename
-        fs_fname += ".json"
-        # convert to JSON
-        l_data = f_dataframe.to_json(orient="records", force_ascii=False)
-
-    # ok ?
-    if l_data:
-        # download button
-        lv_download = st.download_button("Download", l_data, file_name=fs_fname)
-
-    # senão,...
-    else:
-        # show error message 
-        st.error("Erro na geração do arquivo")
-
-# ---------------------------------------------------------------------------------------------
 def pag_altitude():
     """
     página de execução de dados de altitude
@@ -130,7 +74,7 @@ def pag_altitude():
     M_LOG.debug(">> pag_altitude")
 
     # top image
-    st.image("openbdc.jpg")
+    st.image("altitude.png")
 
     # título da página
     st.title("Dados de Altitude")
@@ -141,7 +85,7 @@ def pag_altitude():
     # create parameters
     ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS_ALT[ls_view]}
     
-    # widget de localidade e data
+    # widget de localidade, data, mídia e formato de saída
     ls_midia, ls_fmt = wid_loc_dat(ldct_parm)
 
     # submit button
@@ -151,16 +95,18 @@ def pag_altitude():
         # show message
         with st.spinner(DS_LBL_WAIT):
             # submit query
-            l_data = db.submit_query(ldct_parm)
+            l_data = pr.processa_pesquisa(ldct_parm)
 
         # saída em arquivo ?
         if df.DS_MID_ARQ == ls_midia:
             # build filename
-            ls_fname = build_filename(ls_view, df.DDCT_LOCAL[ls_loc], ls_data_ini)
+            ls_fname = _build_filename(ls_view,
+                                       ldct_parm[df.DS_KEY_LOCAL],
+                                       ldct_parm[df.DS_KEY_DTINI])
             M_LOG.debug("ls_fname: %s", ls_fname)
 
-            # output to file
-            out_file(l_data, ls_fmt, ls_fname)
+            # send output to file
+            _send_2file(l_data, ls_fmt, ls_fname)
 
         # senão,...
         else:
@@ -169,6 +115,7 @@ def pag_altitude():
                 # convert multiple columns to float
                 l_data = l_data.astype({"Temperatura": "float", "Umidade relativa": "int",
                                         "Ponto de orvalho": "float", "Altitude": "float"})
+
             # vento altitude nível padrão ?
             elif "vwm_vento_altitude_nivelpadrao" == ldct_parm[df.DS_KEY_VIEW]:
                 # convert multiple columns to float
@@ -186,18 +133,18 @@ def pag_superficie():
     M_LOG.debug(">> pag_superficie")
 
     # top image
-    st.image("openbdc.jpg")
+    st.image("superficie.png")
 
     # título da página
     st.title("Dados de Superfície")
 
-    # seleção do tipo de dado
+    # seleção da view de dados
     ls_view = st.selectbox(DS_LBL_VIEW, df.DDCT_VIEWS_SUP.keys())
 
     # create parameters
-    ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS_ALT[ls_view]}
+    ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS_SUP[ls_view]}
     
-    # widget de localidade e data
+    # widget de localidade, data, mídia e formato de saída
     ls_midia, ls_fmt = wid_loc_dat(ldct_parm)
     
     # submit button
@@ -207,16 +154,18 @@ def pag_superficie():
         # show message
         with st.spinner(DS_LBL_WAIT):
             # submit query
-            l_data = db.submit_query(ldct_parm)
+            l_data = pr.processa_pesquisa(ldct_parm)
 
         # saída em arquivo ?
         if df.DS_MID_ARQ == ls_midia:
             # build filename
-            ls_fname = build_filename(ls_view, df.DDCT_LOCAL[ls_loc], ls_data_ini)
+            ls_fname = _build_filename(ls_view,
+                                       ldct_parm[df.DS_KEY_LOCAL],
+                                       ldct_parm[df.DS_KEY_DTINI])
             M_LOG.debug("ls_fname: %s", str(ls_fname))
 
-            # output to file
-            out_file(l_data, ls_fmt, ls_fname)
+            # send output to file
+            _send_2file(l_data, ls_fmt, ls_fname)
 
         # senão,...
         else:
@@ -271,6 +220,62 @@ def pag_superficie():
 
             # output to display
             st.write(l_data)
+
+# ---------------------------------------------------------------------------------------------
+def _send_2file(f_dataframe, fs_fmt: str, fs_fname: str):
+    """
+    send output to file
+
+    :param f_dataframe: dataframe
+    :param fs_fmt (str): output format
+    :param fs_fname (str): file name
+    """
+    # logger
+    M_LOG.debug(">> _send_2file")
+
+    # output CSV ?
+    if df.DS_FMT_CSV == fs_fmt:
+        # filename
+        fs_fname += ".csv"
+        # convert to CSV
+        l_data = f_dataframe.to_csv(index=False).encode("utf-8")
+
+    # output Excel ?
+    elif df.DS_FMT_XLS == fs_fmt:
+        # create buffer
+        l_buffer = io.BytesIO()
+
+        # create a Pandas Excel Writer using XlsxWriter as the engine
+        with pd.ExcelWriter(l_buffer, engine="xlsxwriter") as l_writer:
+            # write dataframe to worksheet
+            f_dataframe.to_excel(l_writer, sheet_name=fs_fname)
+
+            # output the excel file to the buffer
+            l_writer.save()
+
+            # download button
+            st.download_button("Download", data=l_buffer,
+                               file_name=fs_fname + ".xlsx",
+                               mime="application/vnd.ms-excel")
+        # return
+        return
+        
+    # senão,...
+    else:
+        # filename
+        fs_fname += ".json"
+        # convert to JSON
+        l_data = f_dataframe.to_json(orient="records", force_ascii=False)
+
+    # ok ?
+    if l_data:
+        # download button
+        lv_download = st.download_button("Download", l_data, file_name=fs_fname)
+
+    # senão,...
+    else:
+        # show error message 
+        st.error("Erro na geração do arquivo")
 
 # ---------------------------------------------------------------------------------------------
 def wid_loc_dat(fdct_parm: dict):
@@ -343,7 +348,7 @@ def main():
     # app title
     st.sidebar.title("OpenBDC")
     # app selection
-    ls_pg_sel = st.sidebar.selectbox("Selecione a pesquisa", DLST_PESQUISA)
+    ls_pg_sel = st.sidebar.selectbox("Selecione a pesquisa", df.DLST_PESQUISA)
 
     # dados de altitude ?
     if df.DS_PSQ_ALT == ls_pg_sel:
