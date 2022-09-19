@@ -37,6 +37,9 @@ def processa_pesquisa(fdct_parms: dict) -> pd.DataFrame:
     # logger
     M_LOG.info(">> processa_pesquisa")
 
+    # insert API key
+    fdct_parms[df.DS_KEY_API] = df.DLST_API_KEYS[0]
+
     # valida parâmetros
     if not ck.check_params(fdct_parms):
         # return empty
