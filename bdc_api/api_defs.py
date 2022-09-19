@@ -55,6 +55,7 @@ DS_MID_DSP = "Tela"
 DLST_MIDIAS = [DS_MID_ARQ, DS_MID_DSP]
 
 # data keys
+DS_KEY_API = "api_key"
 DS_KEY_DTFIM = "data_fim"
 DS_KEY_DTINI = "data_ini"
 DS_KEY_LOCAL = "local"

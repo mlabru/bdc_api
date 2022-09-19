@@ -26,7 +26,7 @@ DI_PID_API=`ps ax | grep -w python3 | grep -w api_run.py | awk '{ print $1 }'`
 
 if [ ! -z "$DI_PID_API" ]; then
     # log warning
-    echo "[`date`]: process bdc_api is already running. Restarting..."
+    echo "[`date`]: process api_run is already running. Restarting..."
     # kill process
     kill -9 $DI_PID_API
     # wait 3s

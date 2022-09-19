@@ -9,6 +9,9 @@ api_prc
 # python library
 import logging
 
+# flask
+import flask
+
 # pandas
 import pandas as pd
 
@@ -58,7 +61,7 @@ def processa_request(fdct_parms: dict, fs_view: str) -> str:
     # valida parâmetros
     if not ck.check_params(fdct_parms):
         # return empty
-        return flask.jsonify({})
+        return flask.jsonify([{}])
 
     # insert view
     fdct_parms[df.DS_KEY_VIEW] = fs_view
