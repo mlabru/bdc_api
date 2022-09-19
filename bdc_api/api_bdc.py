@@ -203,10 +203,10 @@ def _get_from_db(f_bdc, fdct_parm: dict) -> pd.DataFrame:
         ls_key = "data_hora_observacao"
         # colunas
         ls_columns = "data_hora_observacao, sigla, minuto_sondagem, "\
-                     "segundo_sondagem, velocidade_vento, altitude, pressao"
+                     "segundo_sondagem, velocidade_vento, direcao_vento, altitude, pressao"
         # headers
         llst_headers = ["Horário", "Aeródromo", "Minuto", "Segundo",
-                        "Velocidade do vento", "Altitude", "Pressão"]
+                        "Velocidade do vento", "Direção do Vento", "Altitude", "Pressão"]
 
     # make query
     # pylint: disable=duplicate-string-formatting-argument, consider-using-f-string
