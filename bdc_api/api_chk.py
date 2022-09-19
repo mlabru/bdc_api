@@ -94,6 +94,15 @@ def check_params(fdct_parms: dict) -> bool:
     # logger
     M_LOG.info(">> check_params")
 
+    # API key
+    ls_key = fdct_parms.get(df.DS_KEY_API, None)
+
+    if not ls_key in df.DLST_API_KEYS:
+        # display an error in the browser
+        M_LOG.error("API key (%s) não fornecida ou inválida.", str(ls_key))
+        # return
+        return False
+
     # estação
     ls_local = fdct_parms.get(df.DS_KEY_LOCAL, None)
 

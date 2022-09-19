@@ -24,6 +24,9 @@ DS_BDC_USER = os.getenv("DS_BDC_USER")
 DS_BDC_PASS = os.getenv("DS_BDC_PASS")
 DS_BDC_DB = os.getenv("DS_BDC_DB")
 
+# API keys
+DLST_API_KEYS = os.getenv("DLST_API_KEYS")
+
 # < constants >--------------------------------------------------------------------------------
 
 # logging level
