@@ -54,6 +54,9 @@ DS_MID_DSP = "Tela"
 # mídias de saída válidos
 DLST_MIDIAS = [DS_MID_ARQ, DS_MID_DSP]
 
+# tempo máximo de pesquisa em anos
+DI_TEMPO_MAX = 5
+
 # data keys
 DS_KEY_API = "api_key"
 DS_KEY_DTFIM = "data_fim"

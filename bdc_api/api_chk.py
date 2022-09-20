@@ -162,10 +162,10 @@ def _check_1year(fdct_parms: dict):
     # duration in years (seconds in a year = 365*24*60*60 = 31536000)
     lf_years = lf_diff_in_s / 31536000
 
-    if lf_years > 1:
+    if lf_years > df.DI_TEMPO_MAX:
         try:
-            # add 1 year to initial date
-            ldt_fim = ldt_ini.replace(year=ldt_ini.year + 1)
+            # add <tempo máximo> year to initial date
+            ldt_fim = ldt_ini.replace(year=ldt_ini.year + df.DI_TEMPO_MAX)
 
         # em caso de erro,...
         except ValueError:
@@ -176,7 +176,6 @@ def _check_1year(fdct_parms: dict):
         fdct_parms[df.DS_KEY_DTFIM] = ldt_fim.strftime("%Y%m%d") + "23"
 
         # logger
-        M_LOG.warning("request ultrapassa 1 ano. Data: %s", str(fdct_parms[df.DS_KEY_DTFIM]))
-        print("request ultrapassa 1 ano. Data:", str(fdct_parms[df.DS_KEY_DTFIM]))
+        M_LOG.warning("request ultrapassa %d ano. Data: %s", df.DI_TEMPO_MAX, str(fdct_parms[df.DS_KEY_DTFIM]))
 
 # < the end >----------------------------------------------------------------------------------
