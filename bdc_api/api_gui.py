@@ -2,6 +2,7 @@
 """
 api_gui
 
+2023.apr  mlabru  lista das estações que realizam sondagem de altitude
 2023.mar  mlabru  nuvens unificado
 2022.sep  mlabru  initial version (Linux/Python)
 """
@@ -87,7 +88,7 @@ def pag_altitude():
     ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS_ALT[ls_view]}
     
     # widget de localidade, data, mídia e formato de saída
-    ls_midia, ls_fmt = wid_loc_dat(ldct_parm)
+    ls_midia, ls_fmt = wid_loc_dat(ldct_parm, df.DDCT_LOCAL_ALT)
 
     # submit button
     lv_submit = st.button(DS_LBL_PESQ)
@@ -104,7 +105,6 @@ def pag_altitude():
             ls_fname = _build_filename(ls_view,
                                        ldct_parm[df.DS_KEY_LOCAL],
                                        ldct_parm[df.DS_KEY_DTINI])
-            M_LOG.debug("ls_fname: %s", ls_fname)
 
             # send output to file
             _send_2file(l_data, ls_fmt, ls_fname)
@@ -146,7 +146,7 @@ def pag_superficie():
     ldct_parm = {df.DS_KEY_VIEW: df.DDCT_VIEWS_SUP[ls_view]}
     
     # widget de localidade, data, mídia e formato de saída
-    ls_midia, ls_fmt = wid_loc_dat(ldct_parm)
+    ls_midia, ls_fmt = wid_loc_dat(ldct_parm, df.DDCT_LOCAL_SUP)
     
     # submit button
     lv_submit = st.button(DS_LBL_PESQ)
@@ -284,11 +284,12 @@ def _send_2file(f_dataframe, fs_fmt: str, fs_fname: str):
         st.error("Erro na geração do arquivo")
 
 # ---------------------------------------------------------------------------------------------
-def wid_loc_dat(fdct_parm: dict):
+def wid_loc_dat(fdct_parm: dict, fdct_local: dict):
     """
     widgets de localidade, data, mídia e formato de saída
 
     :param fdct_parm (dict): parâmetros
+    :param fdct_local (dict): lista de localidades
 
     :returns: mídia e formato de saída
     """
@@ -296,9 +297,9 @@ def wid_loc_dat(fdct_parm: dict):
     M_LOG.info(">> wid_loc_dat")
 
     # seleção da localidade
-    ls_loc = st.selectbox("Localidade:", df.DDCT_LOCAL.keys())
+    ls_loc = st.selectbox("Localidade:", fdct_local.keys())
     # update parameters
-    fdct_parm[df.DS_KEY_LOCAL] = df.DDCT_LOCAL[ls_loc]
+    fdct_parm[df.DS_KEY_LOCAL] = fdct_local[ls_loc]
 
     # cria 2 colunas
     lwd_col1, lwd_col2 = st.columns(2)

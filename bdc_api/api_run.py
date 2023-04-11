@@ -41,7 +41,6 @@ def api_cgt():
     """
     # logger
     M_LOG.info(">> api_cgt")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -56,7 +55,6 @@ def api_nuvem():
     """
     # logger
     M_LOG.info(">> api_nuvem")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -71,7 +69,6 @@ def api_precipitacao():
     """
     # logger
     M_LOG.info(">> api_precipitacao")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -86,7 +83,6 @@ def api_pressao():
     """
     # logger
     M_LOG.info(">> api_pressao")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -101,7 +97,6 @@ def api_rvr():
     """
     # logger
     M_LOG.info(">> api_rvr")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -116,7 +111,6 @@ def api_temperatura():
     """
     # logger
     M_LOG.info(">> api_temperatura")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -131,7 +125,6 @@ def api_temperatura_altitude_nivel_padrao():
     """
     # logger
     M_LOG.info(">> api_temperatura_altitude_nivel_padrao")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -146,7 +139,6 @@ def api_teto():
     """
     # logger
     M_LOG.info(">> api_teto")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -161,7 +153,6 @@ def api_vento():
     """
     # logger
     M_LOG.info(">> api_vento")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -176,7 +167,6 @@ def api_vento_altitude_nivel_padrao():
     """
     # logger
     M_LOG.info(">> api_vento_altitude_nivel_padrao")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 
@@ -191,7 +181,6 @@ def api_visibilidade():
     """
     # logger
     M_LOG.info(">> api_visibilidade")
-
     # logger
     M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
 

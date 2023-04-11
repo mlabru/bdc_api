@@ -36,9 +36,6 @@ def _check_date(fs_data: str) -> bool:
         return False
 
     try:
-        # convert date
-        # ldt_date = datetime.datetime.strptime(fs_data, '%Y%m%d%H')
-
         # split da data
         li_ano = int(fs_data[:4])
         li_mes = int(fs_data[4:6])
@@ -80,7 +77,8 @@ def _check_local(fs_local: str) -> bool:
         return False
 
     # return
-    return fs_local.upper() in df.DDCT_LOCAL.values()
+    return fs_local.upper() in df.DDCT_LOCAL_ALT.values() or \
+           fs_local.upper() in df.DDCT_LOCAL_SUP.values()
 
 # ---------------------------------------------------------------------------------------------
 def check_params(fdct_parms: dict) -> bool:
