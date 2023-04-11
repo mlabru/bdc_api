@@ -2,6 +2,7 @@
 """
 api_bdc
 
+2023.mar  mlabru  nuvens unificado
 2022.sep  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
@@ -128,6 +129,16 @@ def _get_from_db(f_bdc, fdct_parm: dict) -> pd.DataFrame:
         ls_columns = "hora_observacao, sigla, cgt_1, cgt_2, cgt_3"
         # headers
         llst_headers = ["Horário", "Aeródromo", "CGT 1", "CGT 2", "CGT 3"]
+
+    # nuvem ?
+    elif "vwm_unificado_nuvem" == fdct_parm[df.DS_KEY_VIEW]:
+        # key
+        ls_key = "hora_observacao"
+        # colunas
+        ls_columns = "hora_observacao, sigla, nsinotico, qtdnuvem, altnuvem, tipo_nuvem, direcao_nuvem"
+        # headers
+        llst_headers = ["Horário", "Aeródromo", "Sinótico", "Qtde", "Altitude",
+                        "Tipo da nuvem", "Direção"]
 
     # precipitação
     elif "vwm_unificado_precipitacao" == fdct_parm[df.DS_KEY_VIEW]:

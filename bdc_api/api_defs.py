@@ -2,6 +2,7 @@
 """
 api_defs
 
+2023.mar  mlabru  nuvens unificado
 2022.sep  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
@@ -70,6 +71,7 @@ DDCT_VIEWS_ALT = {"Temperatura Altitude Nível Padrão": "vwm_temperatura_altitu
 
 # views de dados de superfície
 DDCT_VIEWS_SUP = {"CGT": "vwm_unificado_cgt",
+                  "Nuvem": "vwm_unificado_nuvem",
                   "Precipitação": "vwm_unificado_precipitacao",
                   "Pressão": "vwm_unificado_pressao",
                   "RVR": "vwm_unificado_rvr",

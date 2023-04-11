@@ -2,6 +2,7 @@
 """
 api_gui
 
+2023.mar  mlabru  nuvens unificado
 2022.sep  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
@@ -28,7 +29,7 @@ import bdc_api.api_prc as pr
 # < constants >--------------------------------------------------------------------------------
 
 # shared labels
-DS_LBL_VIEW = "View de dados:"
+DS_LBL_VIEW = "Parâmetros:"
 DS_LBL_PESQ = "Pesquisar"
 DS_LBL_WAIT = "Aguarde..."
 
@@ -174,6 +175,11 @@ def pag_superficie():
                 # ["Horário", "Aeródromo", "CGT 1", "CGT 2", "CGT 3"]
                 M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
 
+            # nuvem ?                                                                                 
+            elif "vwm_unificado_nuvem" == ldct_parm[df.DS_KEY_VIEW]:                                          
+                # ["Horário", "Aeródromo", "Sinótico", "Qtde", "Altitude", "Tipo da nuvem", "Direção"]
+                M_LOG.debug("df.dtypes: %s", str(l_data.dtypes))
+                                                                                                        
             # precipitação ?                                                                            
             elif "vwm_unificado_precipitacao" == ldct_parm[df.DS_KEY_VIEW]:                                       
                 # convert "Precipitação" from string to float
@@ -345,10 +351,13 @@ def main():
     # logger
     M_LOG.info(">> main")
 
+    # app logotipo
+    st.sidebar.image("logoicea.jpg")
+
     # app title
-    st.sidebar.title("OpenBDC")
+    st.sidebar.title("CLIMAER")
     # app selection
-    ls_pg_sel = st.sidebar.selectbox("Selecione a pesquisa", df.DLST_PESQUISA)
+    ls_pg_sel = st.sidebar.selectbox("Selecione os dados referente a pesquisa:", df.DLST_PESQUISA)
 
     # dados de altitude ?
     if df.DS_PSQ_ALT == ls_pg_sel:

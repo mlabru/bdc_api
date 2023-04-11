@@ -2,6 +2,7 @@
 """
 api_run
 
+2023.mar  mlabru  nuvens unificado
 2022.sep  mlabru  initial version (Linux/Python)
 """
 # < imports >----------------------------------------------------------------------------------
@@ -46,6 +47,21 @@ def api_cgt():
 
     # return a converted list of dictionaries (JSON)
     return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_cgt")
+
+# ---------------------------------------------------------------------------------------------
+@lapp.route("/api/v1/nuvem", methods=["GET"])
+def api_nuvem():
+    """
+    api nuvem
+    """
+    # logger
+    M_LOG.info(">> api_nuvem")
+
+    # logger
+    M_LOG.debug("request: %s", str(flask.request.args.to_dict()))
+
+    # return a converted list of dictionaries (JSON)
+    return pr.processa_request(flask.request.args.to_dict(), "vwm_unificado_nuvem")
 
 # ---------------------------------------------------------------------------------------------
 @lapp.route("/api/v1/precipitacao", methods=["GET"])

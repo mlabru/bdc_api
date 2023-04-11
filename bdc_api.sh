@@ -53,6 +53,6 @@ fi
 # log warning
 echo "[`date`]: starting process api_gui..."
 # executa a aplicação (-OO)
-streamlit run bdc_api/api_gui.py > logs/api_gui.$HOST.$TDATE.out 2>&1 &
+streamlit run bdc_api/api_gui.py --server.port 8502 > logs/api_gui.$HOST.$TDATE.out 2>&1 &
 
 # < the end >----------------------------------------------------------------------------------
